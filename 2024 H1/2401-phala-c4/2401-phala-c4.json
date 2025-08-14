@@ -1,0 +1,101 @@
+[
+  {
+    "id": "M-01",
+    "title": "Limited availability of balance_of(...) method",
+    "severity": "Medium",
+    "component": "Phat Contract Runtime",
+    "description": "The `balance_of` method is incorrectly restricted to be callable only by the system contract due to an `ensure_system` check. According to the provided documentation, this method should be available to any contract.",
+    "impact": "User contracts relying on the `balance_of` method as per the documentation will fail, as they do not have the required system-level origin to pass the check.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "M-02",
+    "title": "An attacker can bloat the Pink runtime storage with zero costs",
+    "severity": "Medium",
+    "component": "Pink runtime",
+    "description": "The `ExistentialDeposit` constant in the Pink runtime is set to 1, an extremely low value. This allows an attacker to create a vast number of dust accounts for a negligible cost, leading to storage bloat.",
+    "impact": "A storage bloat attack increases storage and processing costs for all users on the network and can degrade overall performance.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "M-03",
+    "title": "A cache that times out can be recovered",
+    "severity": "Medium",
+    "component": "LocalCache",
+    "description": "The `LocalCache#set_expire` function allows resetting the expiration time for a key without checking if the key has already expired. This can lead to the 'reactivation' of an expired key, causing stale data to be treated as valid.",
+    "impact": "An attacker can force the system to reuse stale data by reactivating expired cache entries, potentially leading to data inconsistency, incorrect logic execution, or price manipulation if the cache is used for off-chain data like price feeds.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-04",
+    "title": "An attacker can crash the cluster system by sending an HTTP request with a huge timeout",
+    "severity": "Medium",
+    "component": "Phat Contract Runtime",
+    "description": "In the `batch_http_request` function, a fixed value of 200ms is added to the user-supplied timeout. If a user provides a timeout value close to the maximum for a u64 integer, this addition causes an arithmetic overflow, leading to a panic.",
+    "impact": "Any user can intentionally send a crafted request with a large timeout value, causing the worker process to crash. This can be used to execute a Denial of Service (DoS) attack against the entire cluster at no cost to the attacker.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "01",
+    "title": "No point in using regular http request over batchhttperequest",
+    "severity": "Informational",
+    "component": "Phat Contract Runtime",
+    "description": "The `batchhttprequest` function is not restricted to handling multiple requests and can be used for a single request. It offers a longer timeout bound, making it strictly superior to the singular `httprequest` function.",
+    "impact": "The presence of a seemingly inferior function (`httprequest`) can cause confusion for developers and lead to less robust implementation choices.",
+    "kind": "Design"
+  },
+  {
+    "id": "02",
+    "title": "CallinCommand is misleading and should be renamed callinTransaction for clarity",
+    "severity": "Informational",
+    "component": "Phat Contract Runtime",
+    "description": "The name `CallinCommand` is ambiguous. Renaming it to `callinTransaction` would more clearly reflect its purpose and improve code readability.",
+    "impact": "Misleading names can lead to developer confusion and potential misuse of the function.",
+    "kind": "Documentation"
+  },
+  {
+    "id": "03",
+    "title": "is_running_in_command function is missing or misnamed in the code",
+    "severity": "Informational",
+    "component": "Phat Contract Runtime",
+    "description": "The function `is_running_in_command` mentioned in documentation appears to be implemented as `is_it_in_transaction` in the code. This discrepancy should be corrected.",
+    "impact": "Inconsistency between documentation and code can hinder development and maintenance.",
+    "kind": "Documentation"
+  },
+  {
+    "id": "04",
+    "title": "Functions that are not supported in transaction mode should revert not send empty arrays",
+    "severity": "Informational",
+    "component": "Phat Contract Runtime",
+    "description": "Functions that are not supported in a specific transaction mode return empty arrays instead of reverting. This can be misleading to callers who might interpret an empty array as a valid, empty result set.",
+    "impact": "Returning empty arrays instead of reverting on unsupported operations can lead to silent failures and bad developer experience.",
+    "kind": "Design"
+  },
+  {
+    "id": "05",
+    "title": "Masking deposit calculation can lead to unexpected results in certain circumstances",
+    "severity": "Low",
+    "component": "Phat Contract Runtime",
+    "description": "The `mask_deposit` function uses complex bit math to mitigate side-channel attacks. However, the invariant that the masked deposit must be greater than or equal to the original deposit can be broken with a specific `deposit_per_byte` value.",
+    "impact": "If a malicious cluster creator sets a problematic `deposit_per_byte` value, it could open up the side-channel attack that the masking function is intended to prevent.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "06",
+    "title": "is_in_transaction return value can be misleading",
+    "severity": "Informational",
+    "component": "Phat Contract Runtime",
+    "description": "The `is_in_transaction` function returns true when a call is in estimating mode, because estimation mode is treated the same as a transaction. This is misleading, as no transaction is actually being executed.",
+    "impact": "The misleading return value could cause developers to make incorrect assumptions about the execution context, leading to logic errors in contracts.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "07",
+    "title": "No code size limit check in function put_sidevm_code",
+    "severity": "Informational",
+    "component": "Phat Contract Runtime",
+    "description": "The function `put_sidevm_code` does not perform a size limit check on the code being uploaded. While an on-chain limit exists, adding a check in this function would be a good practice.",
+    "impact": "Lack of an explicit check could lead to unexpected behavior if the on-chain limit changes or is removed, and it represents a missed defense-in-depth opportunity.",
+    "kind": "Implementation"
+  }
+]

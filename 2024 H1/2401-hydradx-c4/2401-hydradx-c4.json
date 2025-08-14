@@ -1,0 +1,101 @@
+[
+  {
+    "id": "H-01",
+    "title": "An attacker possesses the capability to exhaust the entirety of liquidity within the stable swap pools by manipulating the buy function, specifically by setting the asset_in parameter equal to the asset_out parameter",
+    "severity": "High",
+    "component": "stableswap",
+    "description": "The buy() function in the Stableswap pallet does not validate if the input asset is the same as the output asset. An attacker can call the buy function with asset_in equal to asset_out, which results in the calculation of amount_in to be near zero, allowing the attacker to drain funds with minimal cost.",
+    "impact": "This vulnerability allows a malicious actor to drain all liquidity from any pool in the Stableswap pallet without requiring special permissions, leading to significant financial losses for both the protocol and liquidity providers.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "M-01",
+    "title": "Users can MAKE EMA-Oracle price outdated with direct transfers to StableSwap",
+    "severity": "Medium",
+    "component": "EMA Oracle",
+    "description": "The EMA oracle's price information can be manipulated because direct asset transfers to the StableSwap contract do not trigger the oracle's update hooks. This causes a discrepancy between the actual asset prices in the liquidity pools and the prices reported by the oracle.",
+    "impact": "A malicious user can intentionally create outdated prices in the oracle, which could lead to unfair liquidations or other incorrect behavior in third-party protocols that rely on this oracle for price data.",
+    "kind": "Design"
+  },
+  {
+    "id": "M-02",
+    "title": "Malicious liquidity provider can put pool into highly manipulatable state",
+    "severity": "Medium",
+    "component": "stableswap",
+    "description": "The `withdraw_asset_amount()` function for withdrawing liquidity from a StableSwap pool omits a check on the total pool liquidity. This allows a malicious liquidity provider to leave a very small amount of liquidity (e.g., 1 share) in the pool, breaking the `totalPoolIssuance >= MinPoolLiquidity` invariant.",
+    "impact": "Breaking the minimum liquidity invariant makes the pool highly susceptible to price manipulation and can cause a denial-of-service for other users trying to withdraw liquidity via other functions that correctly check the invariant.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-03",
+    "title": "No slippage check in remove_liquidity function in omnipool can lead to slippage losses during liquidity withdrawal.",
+    "severity": "Medium",
+    "component": "omnipool",
+    "description": "The `remove_liquidity` function in the omnipool pallet does not have a `minimum_amount_out` parameter or any other form of slippage protection. This allows a malicious user to frontrun a liquidity withdrawal transaction with a swap that negatively impacts the price.",
+    "impact": "Liquidity providers can suffer significant slippage losses when withdrawing their funds, as a frontrunner can manipulate the asset price between the time the transaction is submitted and when it is executed.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-04",
+    "title": "Complete liquidity removals fail from stableswap pools",
+    "severity": "Medium",
+    "component": "stableswap",
+    "description": "When a user attempts to remove the entire liquidity of a stableswap pool, the transaction reverts due to an arithmetic overflow. The internal mathematics of the stableswap algorithm fail when there is no liquidity remaining.",
+    "impact": "This issue can lead to temporarily locked funds in edge cases, as the initial liquidity provider cannot remove their entire position from the pool once it's established.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-05",
+    "title": "No safe_withdrawal option in withdraw_protocol_liquidity function in omnipool can be abused by frontrunners to cause losses to the admin when removing liquidity",
+    "severity": "Medium",
+    "component": "omnipool",
+    "description": "The `withdraw_protocol_liquidity` function, used by the admin, lacks a slippage protection mechanism. The admin must pass in a price parameter, but a frontrunner can manipulate the spot price to be different from the price passed in, causing the admin to eat losses.",
+    "impact": "If the spot price is manipulated after the admin submits the transaction, the protocol can suffer significant losses due to slippage, which can be much higher than the standard limits because the check is missing entirely.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "M-06",
+    "title": "complete liquidity removal will result in permanent disable of the liquidity addition and prevent minting shares for the liquidity providers.",
+    "severity": "Medium",
+    "component": "omnipool",
+    "description": "If all liquidity is removed from an omnipool asset pool, the asset_reserve and shares become zero. The `add_liquidity` function cannot handle this state and will always revert due to a division-by-zero error when trying to calculate new shares to mint.",
+    "impact": "This creates a permanent denial-of-service for the affected asset pool. No new liquidity can ever be added, and trading is disabled forever, leading to a loss of funds for the protocol and users.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-07",
+    "title": "Re-adding assets to the omnipool can cause a problem with the oracle",
+    "severity": "Medium",
+    "component": "omnipool",
+    "description": "When an asset is removed from the omnipool, its data records are deleted from the omnipool state, but not from the EMA oracle. If the asset is added back later at a different price, the oracle calculates the new price using stale, historical data from before the asset was removed.",
+    "impact": "The oracle will report a falsified, incorrect price for the re-added asset for a period of time. This can cause transactions to fail and could be exploited by protocols that rely on this oracle.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-08",
+    "title": "Storage can be bloated with low value liquidity positions",
+    "severity": "Medium",
+    "component": "omnipool",
+    "description": "A malicious user can create a large number of very small liquidity positions. By depositing the minimum required liquidity and then withdrawing all but one token, the user can bloat the `Positions` storage map with dust entries at a very low cost.",
+    "impact": "This constitutes a denial-of-service attack by bloating the chain's storage. The protocol itself must bear the storage costs for these dust positions, which can hinder functionality.",
+    "kind": "Design"
+  },
+  {
+    "id": "M-09",
+    "title": "Missing hook call will lead to incorrect oracle results",
+    "severity": "Medium",
+    "component": "omnipool",
+    "description": "The `remove_token` function in the omnipool, which transfers all remaining protocol-owned liquidity to a beneficiary, fails to call the `on_liquidity_changed` hook. This hook is responsible for updating the EMA oracle and circuit breaker with the new state.",
+    "impact": "The oracle and circuit breaker will have outdated information about the pool's liquidity. This can lead to incorrect price reporting by the oracle and the failure of security measures that rely on accurate liquidity data.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-10",
+    "title": "A huge loss of funds for all the users who try to remove liquidity after swapping got disabled at manipulated price.",
+    "severity": "Medium",
+    "component": "omnipool",
+    "description": "The `set_asset_tradable_state` function can be used to disable swaps on an asset while still allowing liquidity removal, but it does not check if the oracle price is stable. An attacker can manipulate the price, disable swaps, and then front-run users who try to remove liquidity.",
+    "impact": "When a user removes liquidity while the price is manipulated and swaps are disabled, the `calculate_withdrawal_fee` function can calculate a 100% fee. This results in the user losing their entire liquidity position.",
+    "kind": "Design"
+  }
+]

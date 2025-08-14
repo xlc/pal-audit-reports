@@ -1,0 +1,20 @@
+[
+  {
+    "id": "potential-spamming-attack-via-unsigned-dispatch-permit-extrinsic--pallet-transaction-multi-payment--medium",
+    "title": "Potential spamming attack via unsigned dispatch_permit extrinsic",
+    "severity": "Medium",
+    "component": "pallet-transaction-multi-payment",
+    "description": "The `dispatch_permit` extrinsic allows for unsigned transactions that perform computationally heavy validation. Since the extrinsic is unsigned, no fees are paid, creating an attack vector. This can be exploited by submitting numerous unsigned extrinsics, potentially leading to a denial-of-service (DoS) attack on the network.",
+    "impact": "An attacker can spam the network with unsigned transactions, causing high computational load on collators/validators, network congestion, and performance degradation, effectively slowing down the chain.",
+    "kind": "Design"
+  },
+  {
+    "id": "the-mapping-between-ethereum-and-substrate-addresses-could-create-unwanted-behavior--pallet-evm-accounts--informational",
+    "title": "The mapping between Ethereum and Substrate addresses could create unwanted behavior",
+    "severity": "Informational",
+    "component": "pallet-evm-accounts",
+    "description": "The system maps EVM addresses to Substrate addresses by creating a truncated address, which is against best practices and reduces address entropy. When a user transfers funds to an EVM address that is not bound to a Substrate account, the funds are sent to a truncated address that cannot be claimed by any user.",
+    "impact": "Legitimate users could permanently lose funds by unintentionally transferring them to an EVM address that does not have a corresponding bound Substrate account.",
+    "kind": "Design"
+  }
+]

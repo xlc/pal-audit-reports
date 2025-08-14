@@ -1,0 +1,83 @@
+[
+  {
+    "id": "issue-8",
+    "title": "All XCM fee payments are waived due to setting FeeManager to the unit type",
+    "severity": "High",
+    "component": "Tinkernet Runtime",
+    "description": "The current XcmConfig for both the tinkernet and invarch runtimes effectively waives all fee payments by configuring the FeeManager to a unit type. This renders fee-based congestion control ineffective as no fees are actually charged for XCM transactions.",
+    "impact": "Attackers can cause network congestion by sending a high volume of transactions at no cost, potentially leading to long delivery delays, storage exhaustion, or the dropping of messages.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "issue-7",
+    "title": "No XCM delivery fees configured for sibling parachain messages",
+    "severity": "High",
+    "component": "Tinkernet Runtime",
+    "description": "No fees are charged for delivering XCM messages across parachains because the `PriceForSiblingDelivery` in the tinkernet runtime configuration is set to zero. This allows for free cross-chain messaging.",
+    "impact": "Attackers can send spam messages to other chains without paying a fee, potentially causing XCM queue exhaustion and delays in message delivery for legitimate users.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "issue-6",
+    "title": "Underestimated worst-case weight for OcifStaking::unregister_core",
+    "severity": "High",
+    "component": "OCIF Pallet",
+    "description": "The `unregister_core` extrinsic in the OcifStaking pallet underestimates its worst-case execution weight by a factor of 100. A single call can unstake up to `MaxStakersPerCore` unique stakers, but the weight calculation does not properly account for this.",
+    "impact": "The underestimated weight allows an attacker to create overweight blocks, which can cause block production timeouts, slow down transaction processing, and potentially stall the chain.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "issue-5",
+    "title": "Incorrect runtime weights for XCM and a set of pallets",
+    "severity": "High",
+    "component": "Tinkernet Runtime",
+    "description": "In the tinkernet runtime, weights for the XCM pallet and several other pallets (e.g., orml_tokens, orml_currencies) are configured to zero. This makes their extrinsics effectively free to execute.",
+    "impact": "This misconfiguration allows an attacker to spam the network and bloat storage at no cost, and can lead to the creation of overweight blocks that cause block production timeouts.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "issue-1",
+    "title": "Missing decode depth limit in INV4 pallet allows stack exhaustion",
+    "severity": "High",
+    "component": "INV4 Pallet",
+    "description": "The INV4 pallet's `vote_multisig` extrinsic decodes an encoded call without enforcing a depth limit. This allows for a deeply nested call to be processed.",
+    "impact": "An attacker can craft a malicious call with excessive nesting, causing stack exhaustion when it is decoded. This will lead to a crash of the wasm runtime, impacting node availability.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "issue-4",
+    "title": "Incorrect benchmarks for dependency Substrate-native pallets",
+    "severity": "Medium",
+    "component": "Tinkernet runtime",
+    "description": "The runtime benchmarks for several FRAME pallet dependencies are based on the generic substrate-node template instead of the actual InvArch runtime. This can lead to inaccurate weight calculations for their extrinsics.",
+    "impact": "Incorrectly weighted extrinsics (either over or under) can be exploited by an attacker to create overweight blocks, leading to block production timeouts and reduced network performance.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "issue-3",
+    "title": "Malicious users can bloat storage at little cost via operate_multisig",
+    "severity": "Medium",
+    "component": "INV4 Pallet",
+    "description": "The `operate_multisig` extrinsic allows a user to insert a significant amount of data (metadata and a call, up to 60kb) into storage at a low cost. An attacker can repeatedly call this to fill up storage.",
+    "impact": "A malicious user can clutter storage by creating numerous multisig objects, consuming state storage and potentially degrading network performance without incurring proportional costs.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "issue-9",
+    "title": "Incorrect weight returned by pallet_checked_inflation::on_initialize",
+    "severity": "Low",
+    "component": "Checked Inflation Pallet",
+    "description": "The `on_initialize` hook in the `pallet_checked_inflation` pallet returns a weight value that does not accurately reflect the number of storage reads and writes it performs. This underestimates the actual runtime resources required for its execution.",
+    "impact": "While not directly exploitable, the wrongly estimated weight affects the remaining runtime budget of every block, which could cause block deadlines to be missed if a costly extrinsic is included.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "issue-2",
+    "title": "Unconditional call decoding in vote_multisig is inefficient and potentially inflates weight",
+    "severity": "Informational",
+    "component": "INV4 Pallet",
+    "description": "The `vote_multisig` extrinsic decodes a proposed call from storage on every vote, even before checking if the voting thresholds have been met. The decoded call is only needed if the proposal is approved for execution.",
+    "impact": "This leads to unnecessary resource consumption, as the call is decoded with every vote. For multisigs with many participants and proposals, this creates computational overhead.",
+    "kind": "Process"
+  }
+]

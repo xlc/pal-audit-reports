@@ -1,0 +1,20 @@
+[
+  {
+    "id": "weight-calculation--assets-pallet-chain-extension--low",
+    "title": "Weight calculation",
+    "severity": "Low",
+    "component": "Assets Pallet Chain Extension",
+    "description": "All the assets pallet functions exposed by the chain extension are weighted with a constant amount. Two functions, MetadataSymbol and MetadataName, operate on a variable amount of data, but they also only account for one runtime database read operation.",
+    "impact": "While using a constant weight is not believed to cause significant issues, the currently used weights do not fairly represent the load imposed on the network by smart contracts invoking the operations exposed by the extension.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "unexposed-functionality--assets-pallet-chain-extension--informational",
+    "title": "Unexposed functionality",
+    "severity": "Informational",
+    "component": "Assets Pallet Chain Extension",
+    "description": "The chain extension does not expose all the functionality available from the assets pallet, which is a deliberate and documented choice. For instance, the extension exposes the `approve_transfer` function but not the corresponding `cancel_approval` function, preventing the revocation of approvals.",
+    "impact": "Smart contracts are able to grant approval over an asset to other addresses, but they are unable to revoke that approval, as the allowance can only be increased.",
+    "kind": "Design"
+  }
+]

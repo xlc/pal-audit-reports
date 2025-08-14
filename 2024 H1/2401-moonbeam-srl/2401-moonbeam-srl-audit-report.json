@@ -1,0 +1,22 @@
+
+[
+  {
+    "id": "S2-47",
+    "title": "Incorrect gas weighting may stall block production",
+    "severity": "Medium",
+    "component": "runtime/moonbeam",
+    "description": "The gas cost for the EVM's extcodesize opcode is converted to a static Substrate weight. An attacker can call extcodesize on a non-existent address, which forces two computationally expensive storage reads. This circumvents protections that normally prevent large contract deployments from having incorrectly low gas-to-weight calculations.",
+    "impact": "If exploited over XCM, the forced execution of these overweight operations could lead to blocks that are too large, resulting in a denial-of-service condition for the Moonbeam network.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S2-51",
+    "title": "Incorrect configuration of runtime weights",
+    "severity": "Medium",
+    "component": "Runtime",
+    "description": "Multiple pallets (including cumulus-pallet-parachain-system, cumulus-pallet-dmp-queue, and pallet-message-queue) in the Moonbeam, Moonbase, and Moonriver runtimes were incorrectly configured to use default, non-benchmarked Substrate weights. This means the declared cost of operations did not reflect their actual computational cost.",
+    "impact": "Using non-benchmarked weights can lead to the creation of overweight extrinsics. This may cause blocks to be rejected by the relay-chain during validation, leading to network availability issues.",
+    "kind": "Configuration"
+  }
+]
+

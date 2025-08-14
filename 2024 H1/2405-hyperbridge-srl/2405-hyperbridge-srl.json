@@ -1,0 +1,173 @@
+[
+  {
+    "id": "nexus-runtime-waives-xcm-message-delivery-fee--parachain-runtime-nexus--high",
+    "title": "Nexus runtime waives XCM message delivery fee",
+    "severity": "High",
+    "component": "parachain/runtime/nexus",
+    "description": "The Nexus runtime does not set the FeeManager for XCM configuration, waiving all fees for XCM messages. This allows an attacker to send messages without paying any delivery fee.",
+    "impact": "An attacker can cause network congestion, storage exhaustion, and dropping of messages by sending a high volume of free messages.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "no-xcm-delivery-fees-configured-for-sibling-parachain-messages--parachain-runtime-nexus--high",
+    "title": "No XCM delivery fees configured for sibling parachain messages",
+    "severity": "High",
+    "component": "parachain/runtime/nexus",
+    "description": "The Nexus runtime configuration sets the PriceForSiblingDelivery to NoPriceForMessageDelivery, meaning no fees are charged for XCM messages across parachains. This allows attackers to send spam messages across chains without payment.",
+    "impact": "Excessive spam messages could lead to XCM queue size exhaustion due to excessive storage usage, causing message delivery delays for legitimate users.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "stack-exhaustion-due-to-missing-decodelimit--modules-ismp-pallets-call-decompressor--high",
+    "title": "Stack exhaustion due to missing DecodeLimit",
+    "severity": "High",
+    "component": "modules/ismp/pallets/call-decompressor",
+    "description": "The extrinsic `decompress_call` in `pallet-call-decompressor` accepts a compressed call that is decoded without a depth limit. An attacker can create deeply nested calls that exhaust the stack size during decoding due to excessive recursion.",
+    "impact": "If a malicious call is sent through a bridge that requires forced execution, it could permanently stall the receiving chain, causing a denial of service.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "incorrect-weight-configuration-in-nexus-runtime--parachain-runtimes-nexus--high",
+    "title": "Incorrect weight configuration in Nexus runtime",
+    "severity": "High",
+    "component": "parachain/runtimes/nexus",
+    "description": "The weights for ISMP, XCM, and other Substrate pallets are misconfigured in the Nexus runtime, with some pallets using TestWeightInfo or weights set to zero. This makes the execution cost for these extrinsics effectively zero.",
+    "impact": "An attacker can spam the network with zero-cost transactions, leading to network storage bloating and degraded performance.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "missing-runtime-benchmark-for-ismp-pallets--parachain-runtimes-nexus--high",
+    "title": "Missing runtime benchmark for ISMP pallets",
+    "severity": "High",
+    "component": "parachain/runtimes/nexus",
+    "description": "The configurable weights for several pallets in the ISMP module, such as `pallet-assets` and `pallet-ismp`, are not included in the runtime benchmarks. This can result in overweight or underweight extrinsics.",
+    "impact": "Incorrect benchmarking can lead to low-effort attacks such as spamming, storage bloating, and block stalling when invoking the affected extrinsics.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "unsigned-extrinsics-allow-to-execute-ismp-messages-for-free--modules-ismp--high",
+    "title": "Unsigned extrinsics allow to execute ISMP messages for free",
+    "severity": "High",
+    "component": "modules/ismp",
+    "description": "ISMP messages are implemented as unsigned extrinsics, which allows a malicious attacker to freely execute these messages without being subject to fees or blacklisting. Although checks exist to prevent spamming the transaction pool, this can be circumvented if valid FraudProofMessages are sent repeatedly.",
+    "impact": "An attacker can spam the network with messages without facing any direct consequences, potentially leading to denial of service or network degradation.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "fishermen-can-veto-statecommitment-after-the-challenge-period--modules-ismp-pallets-fishermen--medium",
+    "title": "Fishermen can veto StateCommitment after the challenge_period",
+    "severity": "Medium",
+    "component": "modules/ismp/pallets/fishermen",
+    "description": "In the `veto_state_commitment` extrinsic, Fishermen can veto a `StateCommitment` without checking if the challenge period has elapsed. Fishermen are not required to submit fraud proofs, allowing them to repeatedly veto canonical chain states.",
+    "impact": "A compromised or rogue Fisherman could veto valid state commitments after the challenge period, creating instability and compromising the integrity of the system.",
+    "kind": "Design"
+  },
+  {
+    "id": "missing-priority-in-fraud-proof-messages--modules-ismp--medium",
+    "title": "Missing priority in Fraud Proof messages",
+    "severity": "Medium",
+    "component": "modules/ismp",
+    "description": "Fraud Proof messages are handled with the same priority as other ISMP message types. This can lead to a valid Fraud Proof being delayed or censored if there are many other messages in the queue.",
+    "impact": "A malicious consensus client can inflict more faults into the consensus mechanism and will not be frozen promptly if fraud proofs are not processed in a timely manner.",
+    "kind": "Design"
+  },
+  {
+    "id": "same-consensus-client-can-be-frozen-repeatedly--modules-ismp--medium",
+    "title": "Same consensus client can be frozen repeatedly",
+    "severity": "Medium",
+    "component": "modules/ismp",
+    "description": "A valid Fraud Proof message submitted via an unsigned extrinsic can be used to freeze a byzantine consensus client. However, there is a lack of checks to prevent the same valid proof from being submitted multiple times to repeatedly freeze the same client.",
+    "impact": "A malicious user can spam the chain by repeatedly submitting the same valid Fraud Proof message for free, as they are sent via unsigned extrinsics.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "missing-benchmarking-to-calculate-weights--modules-ismp-pallets--low",
+    "title": "Missing benchmarking to calculate weights",
+    "severity": "Low",
+    "component": "modules/ismp/pallets",
+    "description": "The weights of extrinsics in the `call-decompressor`, `fishermen`, and `relayer` pallets are not based on benchmark values and instead have a fixed value. Incorrect fee calculation due to a lack of benchmarking can be exploited.",
+    "impact": "An attacker could exploit low fees to flood the network with transactions, which is a particular risk for unsigned extrinsics that can be submitted in large numbers.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "unbounded-loop-leading-to-block-production-stalling--modules-ismp-pallets-pallet--informational",
+    "title": "Unbounded loop leading to block production stalling",
+    "severity": "Informational",
+    "component": "modules/ismp/pallets/pallet",
+    "description": "The `ismp-demo` pallet allows dispatching request messages to EVM chains via the `dispatch_to_evm` extrinsic. This extrinsic contains an unbounded loop that could be abused.",
+    "impact": "An attacker could call the extrinsic with a high `count` value to halt block production on the chain. The issue was closed as the demo pallet is not for production use.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "timeout-overflow-due-to-unsafe-arithmetic-in-request-dispatch--modules-ismp-pallets-demo--informational",
+    "title": "Timeout overflow due to unsafe arithmetic in request dispatch",
+    "severity": "Informational",
+    "component": "modules/ismp/pallets/demo",
+    "description": "When a request is dispatched via ISMP, a malicious actor can trigger an integer overflow in the `timeout_timestamp` computation by providing a very high number in the timeout field. This causes the timeout to represent a timestamp in the past.",
+    "impact": "The request will expire before it is even sent. While not a current security risk, it could become problematic if bridge operators are penalized for timeouts in the future.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "missing-fraud-proof-implementation-for-beacon-consensus-clients--modules-ismp-clients-sync-committee--informational",
+    "title": "Missing Fraud Proof implementation for Beacon consensus clients",
+    "severity": "Informational",
+    "component": "modules/ismp/clients/sync-committee",
+    "description": "The `verify_fraud_proof` function is not implemented for the Beacon consensus client. Any attempt to submit a Fraud Proof message for the Beacon chain will be rejected.",
+    "impact": "The Beacon consensus client cannot be frozen after an invalid consensus state, allowing the Relayer to continue relaying messages and resulting in multiple invalid transactions.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "failure-of-transfer-success-may-result-in-unexpected-behavior--evm-src-hosts-evmhost-sol--high",
+    "title": "Failure of transfer success may result in unexpected behavior",
+    "severity": "High",
+    "component": "evm/src/hosts/EvmHost.sol",
+    "description": "There are multiple instances of unchecked return values when interacting with the `transfer()` and `transferFrom()` functions of external ERC-20 contracts. This makes it impossible to halt execution upon failed transfers.",
+    "impact": "In the case of `fundRequest()` and `fundResponse()`, the funding status and value would be recorded incorrectly regardless of whether the token transfer succeeded, leading to undefined system behavior and potential financial loss.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "denial-of-service-to-host-configuration-updates--evm-src-hosts-evmhost-sol--medium",
+    "title": "Denial of service to host configuration updates",
+    "severity": "Medium",
+    "component": "evm/src/hosts/EvmHost.sol",
+    "description": "When the host configuration `_hostParams` is updated, the logic iterates over an unbounded storage array `_hostParams.fishermen`. If the number of entries in this array is set too high by the host manager, it would be impossible to update any configuration parameters.",
+    "impact": "A misconfiguration would cause the update transaction to revert with an out-of-gas error, permanently locking the host configuration.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "configuration-could-be-locked-without-zero-address-sanity-checks--evm-src-hosts-evmhost-sol--low",
+    "title": "Configuration could be locked without zero-address sanity checks",
+    "severity": "Low",
+    "component": "evm/src/hosts/EvmHost.sol",
+    "description": "When updating the host parameters via `updateHostParamsInternal()`, the `hostManager` data field is not checked for the zero-address. A misconfiguration of this field would make the function unreachable.",
+    "impact": "If the `hostManager` is accidentally set to the zero-address, all host configurations would be permanently locked as the update function would be inaccessible.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "configuration-could-be-locked-due-to-the-finality-of-updates--evm-src-hosts-evmhost-sol--low",
+    "title": "Configuration could be locked due to the finality of updates",
+    "severity": "Low",
+    "component": "evm/src/hosts/EvmHost.sol",
+    "description": "Updates to the privileged `hostManager` contract address are done in a single step, which increases the attack surface for misconfiguration and human error. There is no confirmation step or escape clause.",
+    "impact": "A misconfiguration, such as setting a new `hostManager` address that lacks required functionality, would be unrectifiable and could permanently lock critical host functionality.",
+    "kind": "Process"
+  },
+  {
+    "id": "missing-event-emissions-would-impede-off-chain-monitoring--evm-src--low",
+    "title": "Missing event emissions would impede off-chain monitoring",
+    "severity": "Low",
+    "component": "evm/src",
+    "description": "Throughout the codebase, there are instances of unsatisfactory support for off-chain monitoring solutions, as the transmission of necessary system data via events was often neglected. This makes it difficult to track system activity and respond to incidents.",
+    "impact": "The inability to efficiently triage live exploits in a timely manner would amplify the associated impact of any given exploit, as remediation is more challenging when caught late.",
+    "kind": "Operational"
+  },
+  {
+    "id": "gas-optimization-report--evm-src--informational",
+    "title": "Gas optimization report",
+    "severity": "Informational",
+    "component": "evm/src",
+    "description": "Multiple instances were found where source code logic could be optimized to improve runtime transaction fees. This includes using `++i` instead of `i++` in loops, using `!= 0` instead of `> 0` for unsigned integers, and using custom errors instead of require statements.",
+    "impact": "Inefficient Solidity source code results in higher execution costs for users, which may negatively impact community sentiment and increase operational overhead.",
+    "kind": "Implementation"
+  }
+]

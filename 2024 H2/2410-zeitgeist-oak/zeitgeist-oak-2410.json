@@ -1,0 +1,94 @@
+
+[
+  {
+    "id": "insufficient-iteration-limit-in-hash-point-decompression--combinatorial-tokens--high",
+    "title": "Insufficient iteration limit in hash point decompression",
+    "severity": "High",
+    "component": "combinatorial-tokens",
+    "description": "Hash point decompression is limited to 32 iterations, while mathematical evidence suggests approximately 507 iterations might be required to find a valid point on the alt_bn128 curve. This discrepancy means the decompress_hash function may frequently fail to find a valid y-coordinate, even for valid inputs.",
+    "impact": "This can result in a systemic failure of collection ID generation, effectively causing a denial of service in the combinatorial tokens system.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "incorrect-logarithm-calculation--neo-swaps--high",
+    "title": "Incorrect logarithm calculation",
+    "severity": "High",
+    "component": "neo-swaps",
+    "description": "The log_ceil implementation for u16 uses an incorrect value to determine the number of bits, leading to a faulty logarithm calculation for all values. This math utility is used for weight computation in several key functions.",
+    "impact": "The incorrect weight calculation leads to disproportionate overcharging of users for computation costs.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "low-account-costs-could-facilitate-the-exhaustion-of-parachain-resources--runtime--high",
+    "title": "Low account costs could facilitate the exhaustion of parachain resources",
+    "severity": "High",
+    "component": "runtime",
+    "description": "The ExistentialDeposit, the cost to keep an account active, is defined as 5 MILLI ZGT, which corresponds to a very low fiat value. This low cost could allow an attacker to bloat the parachain's storage with a large number of active accounts for a minimal cost.",
+    "impact": "The costs of maintaining the bloated data might exceed the initial creation costs, leading to potential Denial-of-Service scenarios.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "oracle-price-comparison-is-prone-to-manipulation--neo-swaps--medium",
+    "title": "Oracle price comparison is prone to manipulation",
+    "severity": "Medium",
+    "component": "neo-swaps",
+    "description": "The try_evaluate function determines outcomes by directly comparing spot prices between positive and negative outcomes. This approach lacks safeguards, such as using a time-weighted average price, making the oracle vulnerable to price manipulation and MEV attacks.",
+    "impact": "Malicious actors could manipulate prices to influence outcomes, although the report notes the impact is limited because the creation of decision markets is permissioned.",
+    "kind": "Design"
+  },
+  {
+    "id": "unverified-proposal-oracle-could-facilitate-approval-of-malicious-proposal--futarchy--medium",
+    "title": "Unverified proposal oracle could facilitate approval of malicious proposal",
+    "severity": "Medium",
+    "component": "futarchy",
+    "description": "The maybe_schedule_proposal function checks a proposal's approval by calling an oracle that is part of the proposal structure itself. This oracle is not verified when the proposal is submitted or scheduled.",
+    "impact": "A malicious oracle could be specified to arbitrarily approve or reject a proposal. The report notes this could have major consequences if permissionless proposal creation is implemented.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "overflow-checks-are-not-enabled-for-the-release-profile--unspecified--medium",
+    "title": "Overflow checks are not enabled for the release profile",
+    "severity": "Medium",
+    "component": "unspecified",
+    "description": "The crates in scope do not enable the overflow-checks flag for the release build profile. Since Rust does not enforce overflow checks by default in release mode, this could lead to unexpected behavior if arithmetic operations overflow.",
+    "impact": "Integer overflows or underflows may occur silently, leading to unintended consequences, especially if checked math operations are not used consistently throughout the codebase.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "faulty-test-case-introduces-maintenance-risk--combinatorial-tokens--medium",
+    "title": "Faulty test case introduces maintenance risk",
+    "severity": "Medium",
+    "component": "combinatorial-tokens",
+    "description": "In the test suite for redeeming positions, the test cases 'all_zero' and 'all_one' use identical input vectors. This duplication means the scenario for 'all_one' is not actually being tested, which could hide potential bugs.",
+    "impact": "Incorrect test cases can lead to maintenance issues and reduced confidence in the test suite's effectiveness, potentially allowing bugs in untested code paths to go unnoticed.",
+    "kind": "Process"
+  },
+  {
+    "id": "unresolved-fixme-comments-in-the-codebase--unspecified--informational",
+    "title": "Unresolved FIXME comments in the codebase",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "The audit identified several unresolved FIXME comments in the codebase, specifically within the combinatorial-tokens and neo-swaps pallets. These comments indicate areas that require further attention or revision.",
+    "impact": "FIXME comments may point to code that is incomplete, suboptimal, or incorrect, creating technical debt and increasing maintenance overhead.",
+    "kind": "Documentation"
+  },
+  {
+    "id": "the-project-has-dependencies-on-vulnerable-crates--unspecified--informational",
+    "title": "The project has dependencies on vulnerable crates",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "The project depends on versions of 'curve25519-dalek' and 'rustls' that are affected by known security advisories (RUSTSEC-2024-0344 and RUSTSEC-2024-0336, respectively).",
+    "impact": "The identified vulnerabilities in the dependencies could potentially be exploited, posing a security risk to the project.",
+    "kind": "Dependency"
+  },
+  {
+    "id": "unresolved-todo-comments-in-the-codebase--unspecified--informational",
+    "title": "Unresolved TODO comments in the codebase",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "The audit identified numerous unresolved TODO comments scattered throughout the codebase. These comments signify planned enhancements, missing features, or areas needing further work.",
+    "impact": "A large number of TODO comments can indicate an incomplete codebase, creating technical debt and making the code harder to maintain and understand.",
+    "kind": "Documentation"
+  }
+]
+

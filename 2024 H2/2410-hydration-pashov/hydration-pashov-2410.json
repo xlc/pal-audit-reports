@@ -1,0 +1,83 @@
+[
+  {
+    "id": "H-01",
+    "title": "TransferFrom is incorrectly treated as a view function",
+    "severity": "High",
+    "component": "MultiCurrencyPrecompile",
+    "description": "In the `MultiCurrencyPrecompile` module, the `check_function_modifier` fails to handle the `Function::TransferFrom` case, causing it to default to being a view function. This is incorrect as `TransferFrom` is a state-changing operation.",
+    "impact": "This misclassification can lead to unexpected failures when `TransferFrom` is invoked in contexts that restrict state changes, as the execution environment will incorrectly treat it as a read-only call.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-01",
+    "title": "Unbounded storage iteration in EVM address registration migration",
+    "severity": "Medium",
+    "component": "SetCodeForErc20Precompile",
+    "description": "The `on_runtime_upgrade` function performs an unbounded iteration over all assets in the registry to register their EVM addresses. This process occurs within a single transaction.",
+    "impact": "If the number of assets is large, the migration could exceed block weight limits, causing the runtime upgrade to fail and potentially leading to network downtime.",
+    "kind": "Design"
+  },
+  {
+    "id": "M-02",
+    "title": "Failure to verify ERC20 function return values in handle_result()",
+    "severity": "Medium",
+    "component": "Erc20Currency",
+    "description": "The `handle_result` function, which processes ERC20 contract calls, only checks the EVM `exit_reason` for success. It does not validate the returned data, which for many ERC20 tokens is a boolean `false` indicating failure.",
+    "impact": "The system may incorrectly assume an ERC20 operation was successful when it failed, leading to inconsistencies between the application's state and the actual token contract state.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-03",
+    "title": "Unbounded memory growth via EVM Error message allocations",
+    "severity": "Medium",
+    "component": "executor.rs",
+    "description": "The EVM error handling mechanism in `executor.rs` uses `Box::leak` to create permanent memory allocations for each unique error value. Since error messages include dynamic data, an attacker can generate a large number of unique errors.",
+    "impact": "This can lead to unbounded memory growth across all network nodes, which cannot be reclaimed without a restart, creating a potential Denial of Service (DoS) vector.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "L-01",
+    "title": "EIP-2 signature malleability in Permit validation",
+    "severity": "Low",
+    "component": "permit.rs",
+    "description": "The `validate_permit` function does not validate that the `s` value of the ECDSA signature is in the lower half of the curve order, as required by EIP-2. This allows for signature malleability, where multiple valid signatures can exist for the same message.",
+    "impact": "This deviation from a widely-adopted standard could lead to compatibility issues or be a contributing factor in more complex exploits, even if it does not pose a direct, immediate risk.",
+    "kind": "Cryptography"
+  },
+  {
+    "id": "L-02",
+    "title": "Missing logging in runtime upgrade implementation",
+    "severity": "Low",
+    "component": "SetCodeForErc20Precompile",
+    "description": "The `on_runtime_upgrade` function for the ERC20 precompile lacks any logging mechanisms to track its progress or results. This makes it difficult to monitor the upgrade, debug failures, or audit the changes post-deployment.",
+    "impact": "The absence of logging complicates operational monitoring and incident response, making it harder to verify that the upgrade completed successfully or to diagnose the cause of any failures.",
+    "kind": "Operational"
+  },
+  {
+    "id": "L-03",
+    "title": "EVM exit status misclassification in handle_result()",
+    "severity": "Low",
+    "component": "handle_result()",
+    "description": "The `handle_result` function incorrectly classifies the `ExitSucceed::Suicided` EVM exit status as an error. This status is the correct and expected outcome for a successful `SELFDESTRUCT` operation.",
+    "impact": "Valid contract self-destruct operations will be incorrectly marked as failed transactions, which diverges from standard EVM behavior and could break applications that rely on this functionality.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "L-04",
+    "title": "Oversized EVM error messages due to full value encoding",
+    "severity": "Low",
+    "component": "erc20_currency.rs",
+    "description": "The `handle_result` function encodes the entire return `value` from a failed EVM call into the resulting error message. For operations that can return large amounts of data, this leads to oversized error messages.",
+    "impact": "Large error messages can cause excessive memory allocation and lead to unnecessary storage bloat if they are logged on-chain or stored in network history.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "L-05",
+    "title": "Unchecked message size in call()",
+    "severity": "Low",
+    "component": "executor",
+    "description": "The executor's `call` function accepts input `data` of any size without validation. There is no check to limit the size of the message being passed to a contract for execution.",
+    "impact": "Allowing arbitrarily large messages to be processed can lead to excessive gas consumption and potential Denial of Service (DoS) attacks by forcing the system to handle oversized inputs.",
+    "kind": "Input Validation"
+  }
+]

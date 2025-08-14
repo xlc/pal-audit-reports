@@ -1,0 +1,137 @@
+[
+  {
+    "id": "H-01",
+    "title": "transfer_share_and_rewards allows for self transfer",
+    "severity": "High",
+    "component": "rewards library",
+    "description": "The rewards library contains the `transfer_share_and_rewards` function which allows for self-transfer. This can be exploited by a user to double their shares and rewards balance.",
+    "impact": "A user can repeatedly call this function to infinitely increase their share and rewards balance, effectively stealing funds from the protocol.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "H-O2",
+    "title": "Early user can break pool via inflation attack due to no minimum liquidity check in the incentive contract",
+    "severity": "High",
+    "component": "incentive contract",
+    "description": "The incentive contract does not enforce a minimum liquidity limit. This allows a user to create a pool with very little liquidity and perform an inflation attack by repeatedly depositing a small number of shares to inflate the total shares without affecting the reward calculation.",
+    "impact": "The attack breaks the reward inflation mechanism, allowing the attacker to steal reward tokens from other users in the pool.",
+    "kind": "Design"
+  },
+  {
+    "id": "H-03",
+    "title": "transfer_share_and_rewards can be used to transfer out shares without transferring reward debt due to rounding",
+    "severity": "High",
+    "component": "rewards library",
+    "description": "The calculation for `move_balance` in the `transfer_share_and_rewards` function rounds down. An attacker can construct a transaction where a small fraction of shares are transferred, causing the reward debt calculation to round to zero. The receiving account gets shares but no reward debt.",
+    "impact": "The receiving account can claim rewards that have already been accounted for by the sender's debt, allowing for rewards to be drained from the pool.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-01",
+    "title": "Claiming rewards while the deduction rate is != 0, allows for repeated withdrawal of redistributed rewards",
+    "severity": "Medium",
+    "component": "rewards module",
+    "description": "When a user claims rewards, any applied deduction is redistributed to all participants in the pool, including the user who just claimed. This allows the user to repeatedly claim a portion of the rewards that were just deducted.",
+    "impact": "A user can claim more rewards than they are entitled to over time by repeatedly claiming their share of the redistributed deductions.",
+    "kind": "Design"
+  },
+  {
+    "id": "M-02",
+    "title": "Incentive accumulation can be sandwiched with additional shares to gain advantage over long-term depositors",
+    "severity": "Medium",
+    "component": "incentives module",
+    "description": "A user can deposit a large amount of shares immediately before incentive rewards are accumulated and then withdraw them immediately after. This 'sandwich' attack does not require a long-term deposit to earn rewards.",
+    "impact": "An attacker can use this strategy to obtain an unfairly high share of the rewards at the expense of long-term depositors.",
+    "kind": "Design"
+  },
+  {
+    "id": "M-03",
+    "title": "Unbond_instant removes incorrect amount of shares",
+    "severity": "Medium",
+    "component": "earning module",
+    "description": "The `unbond_instant` function calculates a fee but then calls the `OnUnbonded` hook with the post-fee amount. This results in the fee portion of the shares not being removed from the user's bonded amount.",
+    "impact": "A portion of the user's shares remains in the reward system and continues to accumulate rewards, even though they should have been fully unbonded. These shares become stuck.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "M-04",
+    "title": "Storage can be bloated with low liquidity positions",
+    "severity": "Medium",
+    "component": "incentives module",
+    "description": "The `deposit_dex_share` function does not enforce a minimum deposit amount. This allows an attacker to create a massive number of positions with minimal liquidity (e.g., 1 wei) for a very low cost.",
+    "impact": "This can bloat the runtime storage, leading to high maintenance costs for the chain and creating a potential denial-of-service (DoS) vector.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "O1",
+    "title": "Admin is a single point of failure",
+    "severity": "Low",
+    "component": "incentives module",
+    "description": "The permission to update incentive-related parameters is controlled by a single `UpdateOrigin` configuration. There is no backup or alternative method to change these parameters.",
+    "impact": "If access to the `UpdateOrigin` account is lost or compromised, it would become impossible to manage the incentive system, potentially bricking its functionality.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "O2",
+    "title": "Consider adding better documentation",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "Several complex functions within the codebase lack sufficient documentation. This makes it difficult for auditors and developers to understand the intended behavior and mathematical logic.",
+    "impact": "Poor documentation slows down security audits and increases the risk of incorrect integration or misuse of the protocol's functions.",
+    "kind": "Documentation"
+  },
+  {
+    "id": "O3",
+    "title": "Setters should always have equality checkers",
+    "severity": "Low",
+    "component": "unspecified",
+    "description": "Setter functions, such as `set_share`, do not check if the new value is different from the current value. This leads to unnecessary state changes and triggers events even when nothing changes.",
+    "impact": "This results in wasted gas from unnecessary code execution and can introduce subtle bugs if other logic relies on the assumption that a state change implies a value change.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "O4",
+    "title": "OnUpdateLoan::happened() should check for when adjustment == 0",
+    "severity": "Low",
+    "component": "unspecified",
+    "description": "The `OnUpdateLoan::happened` function, which settles adjustments, does not explicitly handle cases where the adjustment is zero. The logic defaults to an attempt to remove zero shares, which is an unnecessary operation.",
+    "impact": "The lack of precise input validation leads to inefficient and slightly flawed code structure, executing unnecessary operations.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "O5",
+    "title": "Protocol does not apply deadlines when dealing with critical operations",
+    "severity": "Low",
+    "component": "unspecified",
+    "description": "Critical operations such as `do_deposit_dex_share` and `do_withdraw_dex_share` lack a deadline parameter. A user's transaction could remain pending in the mempool and be executed much later at a different, potentially unfavorable, price.",
+    "impact": "Users may lose funds if their transactions are executed long after they were submitted, under different market conditions than they intended.",
+    "kind": "Design"
+  },
+  {
+    "id": "O6",
+    "title": "Fix typos",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "The codebase contains several typographical errors in code comments and documentation. For example, 'avalailable' instead of 'available'.",
+    "impact": "Typos reduce code clarity and professionalism, and can occasionally lead to misunderstandings of intent.",
+    "kind": "Documentation"
+  },
+  {
+    "id": "O7",
+    "title": "Consider using BST instead",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "The report notes that reward information is stored in a B-Tree map. It suggests that a balanced binary search tree (BST) could be a more performant data structure for this use case.",
+    "impact": "The current data structure choice may not be the most optimal, leading to slightly higher computational costs for searching and accessing reward data.",
+    "kind": "Design"
+  },
+  {
+    "id": "O8",
+    "title": "Consider not switching off important clippy protection methods",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "The project configuration disables several useful lints from Clippy, Rust's static analysis tool, such as `clippy::unused_unit`. These lints are designed to catch common mistakes and improve code quality.",
+    "impact": "Disabling protective lints can allow flawed or poorly structured code to be committed, potentially hiding underlying bugs or design issues.",
+    "kind": "Process"
+  }
+]

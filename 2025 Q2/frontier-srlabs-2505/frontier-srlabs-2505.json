@@ -1,0 +1,47 @@
+[
+  {
+    "id": "S3-55",
+    "title": "Constructing smart contract can bypass precompile address bounding",
+    "severity": "High",
+    "component": "/precompiles/src/precompile_set.rs",
+    "description": "The access control check intended to prevent smart contracts from calling certain precompiles can be bypassed. The check incorrectly assumes that an account with a code length of zero must be an externally owned account, but this condition is also true for smart contracts that are under construction.",
+    "impact": "Attackers can bypass the filter and call precompiles that should be restricted, potentially leading to complex logic-based attacks. This is especially risky for third-party developers who rely on this security assumption.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "S2-59",
+    "title": "Missing check_inherent for note_min_gas_price_target inflates gas price",
+    "severity": "Medium",
+    "component": "/frame/dynamic-fee/src/lib.rs",
+    "description": "The inherent extrinsic `note_min_gas_price_target` lacks a `check_inherent` function, which is necessary to allow network nodes to verify the data submitted by the block producer. This omission allows a block producer to set the minimum gas price target without any validation from the network.",
+    "impact": "A malicious block producer could repeatedly set the gas price to its maximum allowed value, causing transaction fees to inflate continuously. This would render contract execution prohibitively expensive, leading to a denial-of-service.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S2-58",
+    "title": "Silent failure in Curve25519 arithmetic precompiles with malformed points",
+    "severity": "Medium",
+    "component": "/frame/evm/precompile/curve25519/src/lib.rs",
+    "description": "The Curve25519 arithmetic precompiles do not correctly handle invalid Ristretto point representations. Instead of returning an error, they silently treat malformed inputs as the cryptographic identity element, which can lead to incorrect results in cryptographic operations.",
+    "impact": "This flaw could be abused to bypass cryptographic checks, such as compromising key exchanges or enabling signature forgery in multi-signature schemes by submitting invalid points that are incorrectly counted towards the threshold.",
+    "kind": "Cryptography"
+  },
+  {
+    "id": "S2-57",
+    "title": "Various underpriced precompiles can lead to DoS attack",
+    "severity": "Medium",
+    "component": "/frame/evm/precompile/*",
+    "description": "Several precompiles, notably `Curve25519Add`, have a gas cost that is significantly lower than their actual computational cost. Benchmarks show that this precompile requires about ten times more CPU time than another precompile with the same gas cost, indicating improper benchmarking.",
+    "impact": "An attacker could exploit this by crafting transactions that call the underpriced precompiles, consuming excessive CPU resources while paying minimal fees. This could slow down or halt block production, resulting in a network denial-of-service.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S0-56",
+    "title": "FeeMultiplierUpdate not set to a TargetedFeeAdjustment type",
+    "severity": "Informational",
+    "component": "/template/runtime/src/lib.rs",
+    "description": "The provided runtime template for Frontier developers configures network fees to use a constant multiplier. This means that transaction fees do not automatically adjust to network congestion, as the fee calculation does not account for current network usage.",
+    "impact": "Since fees do not reflect network congestion, an attacker could censor transactions by flooding the network and paying only the base fee. This could cause a denial-of-service against zero-tip transactions for an extended period.",
+    "kind": "Configuration"
+  }
+]

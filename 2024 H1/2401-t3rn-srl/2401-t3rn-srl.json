@@ -1,0 +1,92 @@
+[
+  {
+    "id": "implementation-error-allows-attackers-to-impersonate-any-circuitrole--circuit-pallet--high",
+    "title": "Implementation error allows attackers to impersonate any CircuitRole",
+    "severity": "High",
+    "component": "Circuit pallet",
+    "description": "A coding error in the `authorize` function within the Circuit pallet allows any user to impersonate critical roles such as Requester, Relayer, and Executor. The function correctly checks for a signed origin but fails to validate that the caller actually possesses the specified `CircuitRole`, thereby allowing any user to execute permissioned extrinsics.",
+    "impact": "Any user can impersonate infrastructure-critical users and perform permissioned transactions, such as bidding on side effects, escrowing funds, or canceling transactions.",
+    "kind": "Authorization"
+  },
+  {
+    "id": "extrinsic-allows-takeover-of-gateways-escrow-account--xdns-pallet--high",
+    "title": "Extrinsic allows takeover of gateway's escrow account",
+    "severity": "High",
+    "component": "Xdns pallet",
+    "description": "The `reboot_self_gateway` extrinsic in the xdns pallet can be called by any signed user, who can then set their own account as the gateway's escrow account. This is because the logic uses the caller's signed account ID to establish the new escrow, lacking a necessary permission check to restrict this action to a root or admin origin.",
+    "impact": "An attacker can take over a gateway's escrow account, leading to fraudulent transactions and the complete loss of escrowed funds.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "underweight-extrinsics-may-cause-block-production-timeout--circuit-pallet--high",
+    "title": "Underweight extrinsics may cause block production timeout",
+    "severity": "High",
+    "component": "Circuit pallet",
+    "description": "Multiple extrinsics within the circuit pallet have weights that were benchmarked without considering worst-case computational scenarios, such as iterating over a list of maximum possible length. This oversight allows for the creation of blocks that are heavier than the network expects.",
+    "impact": "Attackers can craft transactions that create overweight blocks, potentially causing block production timeouts. This can significantly slow down transaction processing and could stall the chain if validators consistently miss their block production slots.",
+    "kind": "Operational"
+  },
+  {
+    "id": "general-benchmarking-mismatch-across-multiple-extrinsics--circuit-and-xdns-pallets--high",
+    "title": "General benchmarking mismatch across multiple extrinsics",
+    "severity": "High",
+    "component": "Circuit and xdns pallets",
+    "description": "In the circuit and xdns pallets, some extrinsics reuse weight functions from other, different extrinsics. This practice leads to a mismatch between the actual computational requirements of an extrinsic and its assigned execution cost, resulting in underweighted transactions.",
+    "impact": "The use of inaccurate, under-weighted extrinsics enables the creation of overweight blocks, which can disrupt block production and potentially halt the chain.",
+    "kind": "Operational"
+  },
+  {
+    "id": "extrinsics-that-have-default-weights-should-be-properly-benchmarked--circuit-and-attesters-pallets--high",
+    "title": "Extrinsics that have default weights should be properly benchmarked",
+    "severity": "High",
+    "component": "Circuit and attesters pallets",
+    "description": "Several extrinsics across the t3rn codebase are assigned a default, hardcoded weight rather than a weight derived from proper benchmarking. For instance, the `claim` extrinsic in the circuit pallet lacks authentication and uses a default weight, allowing any user to call it without paying a fee appropriate for its execution time.",
+    "impact": "This allows malicious actors to spam the blockchain with computationally intensive transactions at a low cost, potentially bloating block size and stalling the chain.",
+    "kind": "Operational"
+  },
+  {
+    "id": "insecure-randomness-algorithm-for-attesters-shuffling--runtime--medium",
+    "title": "Insecure randomness algorithm for Attester's shuffling",
+    "severity": "Medium",
+    "component": "Runtime",
+    "description": "The selection of Attesters is randomized using the `RandomnessCollectiveFlip` pallet, which derives its seed from the hashes of the last 81 blocks. This method is known to be insecure for production environments as the outcome is predictable.",
+    "impact": "A malicious collator who is also an active participant in the Attesters set could predict and manipulate the randomness outcome. This would allow them to ensure their own selection in future committees, gaining an unfair financial advantage.",
+    "kind": "Cryptography"
+  },
+  {
+    "id": "overlapping-values-for-isteleporter-and-isreserve--runtime--medium",
+    "title": "Overlapping values for IsTeleporter and IsReserve",
+    "severity": "Medium",
+    "component": "Runtime",
+    "description": "In the XCM configuration, the `IsTeleporter` and `IsReserve` settings are configured with overlapping values for native assets. This allows the same assets to be both teleported and reserve-transferred from the relay chain, a practice that should be mutually exclusive for a given asset.",
+    "impact": "An attacker can exploit this misconfiguration to drain funds from the `CheckedAccount` by repeatedly reserve-transferring and teleporting back the same assets. This would cause a denial-of-service for legitimate users.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "identityfee-used-to-configure-weighttofee--runtime--medium",
+    "title": "IdentityFee used to configure WeightToFee",
+    "severity": "Medium",
+    "component": "Runtime",
+    "description": "The `TransactionPayment` pallet is configured to use `IdentityFee` for its `WeightToFee` implementation. This sets the transaction fee equal to its weight, without applying any scaling or conversion, and fails to account for the network's current economic conditions or congestion.",
+    "impact": "This simplistic fee calculation can lead to a significant underestimation of transaction fees, allowing malicious network participants to spam the chain with cheap transactions.",
+    "kind": "Design"
+  },
+  {
+    "id": "incorrect-benchmarks-for-dependency-pallets--runtime--low",
+    "title": "Incorrect benchmarks for dependency pallets",
+    "severity": "Low",
+    "component": "Runtime",
+    "description": "The project's benchmarks were generated using a generic template substrate-runtime, not the actual t3rn runtime. This approach fails to accurately measure the performance of dependency pallets within the specific configuration of the t3rn parachain.",
+    "impact": "Incorrectly benchmarked weights can lead to overweight extrinsics becoming non-callable or underweight extrinsics creating network instability.",
+    "kind": "Operational"
+  },
+  {
+    "id": "lack-of-authorization-in-extrinsic-exposes-potential-for-spamming--circuit-vacuum-pallet--informational",
+    "title": "Lack of authorization in extrinsic exposes potential for spamming",
+    "severity": "Informational",
+    "component": "Circuit/Vacuum pallet",
+    "description": "Several extrinsics, including `read_order_status` and `read_all_pending_order_status` in the Circuit/Vacuum pallet, do not have an origin check. This means they can be called by any entity on the network without authorization or fee payment.",
+    "impact": "The absence of an origin check allows attackers to waste chain resources by repeatedly calling these extrinsics, exposing the blockchain to spamming attacks at no cost to the attacker.",
+    "kind": "Authorization"
+  }
+]

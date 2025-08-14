@@ -1,0 +1,38 @@
+[
+  {
+    "id": "double-spending-of-tokens-via-infinite-staking-on-unlock--pallets-dapp-staking-v3--critical",
+    "title": "Double spending of tokens via infinite staking on unlock",
+    "severity": "Critical",
+    "component": "pallets/dapp-staking-v3",
+    "description": "The unlocking logic in dapp-staking-v3 allows an attacker to double spend tokens. A user can unlock tokens, transfer them to another account, and then use the 'relock_unlocking' function to make the non-existent tokens available for staking again in the original account.",
+    "impact": "An attacker can stake the same tokens multiple times across different accounts, leading to gaining undue rewards and potentially tampering with the network's inflation scheme.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "payouts-round-down-to-zero-for-collator-and-treasury-rewards--pallets-inflation--high",
+    "title": "Payouts round down to zero for collator and treasury rewards",
+    "severity": "High",
+    "component": "pallets/inflation",
+    "description": "Due to integer division in the inflation calculation logic, the rewards per block for collators and the treasury can be rounded down to zero. This occurs if the configured emission rate for a cycle is smaller than the number of blocks in that cycle.",
+    "impact": "Collators may not receive rewards for producing blocks, which could deter participation and disrupt the staking mechanism. This breaks the economic model and could lead to free balances floating in the system.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "unregistered-dapps-not-removed-from-storage--pallets-dapp-staking-v3--medium",
+    "title": "Unregistered dApps not removed from storage",
+    "severity": "Medium",
+    "component": "pallets/dapp-staking-v3",
+    "description": "When a dApp is unregistered, its state is marked as 'Unregistered' but it is not removed from the 'IntegratedDApps' storage count. This count is checked against the 'MaxNumberOfContracts' limit, meaning that over time, the accumulation of unregistered dApps can prevent new, valid dApps from registering.",
+    "impact": "This can prevent new dApp developers from registering their applications, effectively halting ecosystem growth. It would require a manual and expensive runtime upgrade to fix by increasing the limit or cleaning the storage.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "loyal-staker-status-can-be-abused--pallets-dapp-staking-v3--low",
+    "title": "Loyal staker status can be abused",
+    "severity": "Low",
+    "component": "pallets/dapp-staking-v3",
+    "description": "A staker achieves 'loyal' status by staking at least once in a voting period. However, they can unstake their entire balance within the same period and still retain this loyal status for the next period, despite having no active stake.",
+    "impact": "This flaw disrupts the concept of loyalty, as a staker with zero balance maintains a privileged status. This could be exploited if dApp developers use the 'loyal staker' status for special payouts or other privileges.",
+    "kind": "Design"
+  }
+]

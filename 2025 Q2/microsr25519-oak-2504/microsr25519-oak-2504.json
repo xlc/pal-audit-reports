@@ -1,0 +1,110 @@
+[
+  {
+    "id": "missing-validation-for-point-at-infinity--micro-sr25519--medium",
+    "title": "Missing validation for point at infinity",
+    "severity": "Medium",
+    "component": "micro-sr25519",
+    "description": "The audit identified that there is no validation to ensure the public key is not the point at infinity. Because scalar multiplication by zero yields the identity, an attacker could use the identity point as a public key to pass signature verification without possessing a corresponding secret key.",
+    "impact": "This vulnerability could allow an attacker to forge signatures that would be accepted as valid, potentially leading to unauthorized actions or transaction spoofing.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "ambiguous-transcript-construction-due-to-empty-label--micro-sr25519--medium",
+    "title": "Ambiguous transcript construction due to empty label",
+    "severity": "Medium",
+    "component": "micro-sr25519",
+    "description": "The `label` method within `SigningContext` uses an empty string, which is problematic for the Merlin transcript system it employs. In Merlin, labels are essential for domain separation and context binding to prevent state collisions.",
+    "impact": "Using an empty label can lead to ambiguous or overlapping transcript states, which undermines the uniqueness guarantees of cryptographic signatures and could allow for potential forgery.",
+    "kind": "Cryptography"
+  },
+  {
+    "id": "missing-flag-to-enable-improved-transcription-ordering-for-vrf--micro-sr25519--medium",
+    "title": "Missing flag to enable improved transcription ordering for VRF",
+    "severity": "Medium",
+    "component": "micro-sr25519",
+    "description": "The library commits the public key to the transcript after the nonce, following a pattern compatible with Kusama but diverging from a more secure ordering that mitigates certain attacks. The report notes this could be exploited by a malicious actor to undermine the VRF's security assumptions.",
+    "impact": "This design choice could expose the Verifiable Random Function (VRF) to attacks that exploit discrepancies between public and secret key alignments in environments requiring stronger cryptographic assurances.",
+    "kind": "Cryptography"
+  },
+  {
+    "id": "incomplete-signature-format-validation-may-allow-non-canonical-inputs--micro-sr25519--medium",
+    "title": "Incomplete signature format validation may allow non-canonical inputs",
+    "severity": "Medium",
+    "component": "micro-sr25519",
+    "description": "The signature verification logic does not fully enforce the sr25519 specification. While it correctly checks for the Schnorrkel marker bit in the final signature byte, it fails to validate that the remaining bits are cleared, which is a requirement for canonical signature encoding.",
+    "impact": "Acceptance of non-canonical signatures can undermine the strict format guarantees that cryptographic protocols depend on, potentially causing interoperability failures or security vulnerabilities.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "potential-timing-side-channel-in-scalar-arithmetic-operations--micro-sr25519--medium",
+    "title": "Potential timing side-channel in scalar arithmetic operations",
+    "severity": "Medium",
+    "component": "micro-sr25519",
+    "description": "Scalar arithmetic operations within the codebase may be susceptible to timing side-channel attacks. This is due to the variable-time behavior of the underlying bigInt implementation in the JavaScript environment.",
+    "impact": "Although modern JavaScript engines provide some mitigation, a sophisticated attacker in an adversarial setting could potentially exploit these timing variations to extract secret key information.",
+    "kind": "Cryptography"
+  },
+  {
+    "id": "insufficient-input-validation--micro-sr25519--medium",
+    "title": "Insufficient input validation",
+    "severity": "Medium",
+    "component": "micro-sr25519",
+    "description": "The `secretFromSeed` and `getSharedSecret` functions do not perform comprehensive input validation. For instance, they do not check for zeroed arrays or other structurally invalid inputs, which can result in incorrect computations.",
+    "impact": "Lack of robust input validation could lead to incorrect cryptographic outputs or unexpected behavior, weakening the overall security guarantees provided by the library.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "the-chain-code-is-generated-but-not-returned-to-the-caller--micro-sr25519--medium",
+    "title": "The chain code is generated but not returned to the caller",
+    "severity": "Medium",
+    "component": "micro-sr25519",
+    "description": "During execution, a chain code is calculated within a `SigningContext` but is subsequently discarded instead of being returned to the calling function. This behavior is inefficient and deviates from the design of reference implementations like Schnorrkel in Rust.",
+    "impact": "This implementation detail makes it impossible for callers to leverage the dynamically generated chain code for further key derivation or processing, limiting the library's utility for HDKD (Hierarchical Deterministic Key Derivation) use cases.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "insecure-rng-injection-in-signing-and-vrf-functions--micro-sr25519--informational",
+    "title": "Insecure RNG injection in signing and VRF functions",
+    "severity": "Informational",
+    "component": "micro-sr25519",
+    "description": "The signing and VRF functions in the library permit an overridable `rng` parameter. This design introduces a security risk if the user supplies a weak, deterministic, or replayable Random Number Generator (RNG), as it could make nonce values predictable.",
+    "impact": "If a predictable RNG is used, a malicious actor could potentially derive private keys, compromising the security of the cryptographic operations.",
+    "kind": "Cryptography"
+  },
+  {
+    "id": "lack-of-input-size-restrictions-may-allow-denial-of-service-attacks--micro-sr25519--informational",
+    "title": "Lack of input size restrictions may allow denial of service attacks",
+    "severity": "Informational",
+    "component": "micro-sr25519",
+    "description": "The library does not enforce any maximum length constraints on several input parameters, including `message`, `context`, and `extra`. The library's internal byte-by-byte processing could lead to severe performance degradation if excessively large inputs are provided.",
+    "impact": "In a backend service context, an attacker could exploit this by sending very large inputs, leading to high resource consumption and a potential denial-of-service (DoS) attack.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "misleading-error-message-in-vrf-output-point-identity-check--micro-sr25519--informational",
+    "title": "Misleading error message in VRF output point identity check",
+    "severity": "Informational",
+    "component": "micro-sr25519",
+    "description": "The VRF verification function includes a check to detect if the output is the identity (zero) point. While the check is implemented correctly, the associated error message inaccurately states that the check applies to the public key, not the output point.",
+    "impact": "This misrepresentation in the error message can cause confusion for developers, hindering debugging efforts and potentially leading to misinterpretation of security assessments.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "presence-of-todos-and-pending-items--micro-sr25519--informational",
+    "title": "Presence of TODOs and pending items",
+    "severity": "Informational",
+    "component": "micro-sr25519",
+    "description": "The audit of the codebase revealed the presence of unresolved TODO comments and other pending items. These markers indicate segments of the code that are incomplete, unverified, or require further attention.",
+    "impact": "Leaving such items in production code can represent a maintenance and security risk, as they may correspond to unfinished features, missing error handling, or areas that have not undergone full security scrutiny.",
+    "kind": "Documentation"
+  },
+  {
+    "id": "secret-keys-encoded-as-ed25519-bytes--micro-sr25519--informational",
+    "title": "micro-sr25519 secret keys are encoded as ed25519 bytes, which is different than schnorrkel default encoding",
+    "severity": "Informational",
+    "component": "micro-sr25519",
+    "description": "Differential fuzz testing revealed that the TypeScript functions in `micro-sr25519` encode secret keys using the ed25519 byte format. This differs from the default internal format used by the Rust `schnorrkel` reference implementation.",
+    "impact": "This encoding difference can cause significant interoperability issues if keys are generated in one implementation and used in the other without explicit conversion, leading to signature validation failures.",
+    "kind": "Implementation"
+  }
+]

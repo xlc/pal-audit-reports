@@ -1,0 +1,38 @@
+[
+  {
+    "id": "HI-01",
+    "title": "Unrestricted URI",
+    "severity": "High",
+    "component": "pallets/laos-evolution",
+    "description": "If a collection created via the EvolutionCollectionFactory precompile is configured to allow public minting, any user can create new collection items pointing to arbitrary malicious URIs. This is possible for any unused slot within the collection.",
+    "impact": "Malicious URIs could direct users to browser exploits, client-side attacks, or illegal content. These URIs would be associated with the NFT collection and displayed on platforms where the NFTs are traded.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "ME-01",
+    "title": "Lack of URI Validation",
+    "severity": "Medium",
+    "component": "pallets/asset-metadata-extender, pallets/laos-evolution",
+    "description": "URIs received by the AssetMetadataExtender and EvolutionCollection precompiles are not validated for correct format or canonized before being stored on-chain. This allows for malformed URIs to be written into the blockchain's state.",
+    "impact": "Other systems that read URI data from the blockchain could be vulnerable to exploits that leverage malformed URIs. This issue increases the risk of the 'HI-01 Unrestricted URI' finding.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "MI-01",
+    "title": "No Logging on Minting Error",
+    "severity": "Low",
+    "component": "pallets/parachain-staking/src/rewards/mint_rewards.rs",
+    "description": "When new blocks are created, if the system fails to deposit funds for the collator's reward, the error is not logged or registered. The code handles the success case but has no 'else' clause for the failure case.",
+    "impact": "A failure to reward a collator would happen silently, making it difficult to detect or debug potential issues with the reward mechanism. This could lead to collators not being paid without any notification.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "MI-02",
+    "title": "Lack of Universal Location Validation",
+    "severity": "Low",
+    "component": "pallets/asset-metadata-extender",
+    "description": "The functions `extendULWithExternalURI` and `updateExtendedULWithExternalURI` do not validate the universal location string parameter. This unvalidated string is then reflected in emitted events that can be processed by other systems.",
+    "impact": "Systems that consume and process emitted events could be exploited by malformed universal location strings. The risk is lower than state corruption as it is confined to event data.",
+    "kind": "Input Validation"
+  }
+]

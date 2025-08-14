@@ -1,0 +1,29 @@
+[
+  {
+    "id": "S1-2135",
+    "title": "Minimum staking amount not enforced",
+    "severity": "Low",
+    "component": "Frequency-capacity-pallet",
+    "description": "The `ensure_can_stake` function is intended to verify that a staking amount exceeds the required minimum. However, it checks the sum of the user's current active stake and the new stake amount, rather than the new amount in isolation. This allows a user to make a valid initial stake and then make subsequent stakes of as little as 1 token, bypassing the intended economic constraint.",
+    "impact": "An attacker can underpay for storage usage by making many small staking requests after an initial valid one, leading to potential storage bloating and slowing down the network.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S1-2147",
+    "title": "Possible user handle confusion",
+    "severity": "Low",
+    "component": "Frequency-handles-pallet",
+    "description": "When a user claims a handle, the system checks against a list of reserved words like 'admin'. This check does not account for the canonical representation of Unicode characters, allowing a user to register a handle with characters that are visually confusable with a reserved name (e.g., using a homoglyph for 'a').",
+    "impact": "A user could claim a handle that closely resembles a reserved or official handle, potentially misleading other users into believing they hold a special or privileged status.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "SO-2134",
+    "title": "Possible interoperability issue in passkey signature verification",
+    "severity": "Informational",
+    "component": "Frequency-pallet-passkey",
+    "description": "The `check_account_signature` function expects signature data to be wrapped in `<Byte>` tags, following a convention used by the polkadot-js-extension. If a third-party application submits a raw signature without this specific wrapping, the signature verification will fail, resulting in transaction errors.",
+    "impact": "This requirement can cause interoperability problems with third-party applications that are unaware of or do not implement this specific data wrapping convention, limiting broader ecosystem compatibility.",
+    "kind": "Design"
+  }
+]

@@ -1,0 +1,173 @@
+[
+  {
+    "id": "static-calculation-of-weights-for-the-claim-reward-extrinsic-enables-dos-attack-vector--lend-market--high",
+    "title": "Static calculation of weights for the claim_reward extrinsic enables DoS attack vector",
+    "severity": "High",
+    "component": "lend-market",
+    "description": "The `claim_reward` function iterates over all existing markets to collect rewards. However, the extrinsic's weight calculation is static and does not account for the number of markets, meaning the fee does not correlate with the computational resources used. This allows for a situation where executing claims across many markets costs the same as a single claim.",
+    "impact": "An attacker could register a large number of markets and then execute the `claim_reward` extrinsic to overload chain nodes for a disproportionately small fee, potentially leading to a denial-of-service attack.",
+    "kind": "Design"
+  },
+  {
+    "id": "price-feeder-centralization-risks--prices--medium",
+    "title": "Price feeder centralization risks",
+    "severity": "Medium",
+    "component": "prices",
+    "description": "In the `prices` pallet, the privileged `FeederOrigin` is permitted to set arbitrary emergency prices without any validation on the provided values. This could be exploited if the `FeederOrigin` key is compromised or if an incorrect price is submitted due to an input error, as even a price of zero is accepted.",
+    "impact": "A malicious actor with access to the `FeederOrigin` account could manipulate asset prices, leading to incorrect valuations and potentially causing widespread wrongful liquidations of user assets.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "multiple-foreign-asset-id-can-be-mapped-to-the-same-asset-id--prices--medium",
+    "title": "Multiple foreign_asset_id can be mapped to the same asset_id",
+    "severity": "Medium",
+    "component": "prices",
+    "description": "The `set_foreign_asset` extrinsic allows a privileged origin to map a `foreign_asset_id` to an `asset_id`. However, the function lacks a check to ensure the `asset_id` is not already associated with a different `foreign_asset_id`, permitting multiple foreign assets to be linked to the same internal asset.",
+    "impact": "This vulnerability could lead to market misconfigurations and unpredictable system behavior, as the protocol might not handle asset pricing and accounting correctly.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "missing-check-that-foreign-asset-id-is-specifically-of-the-foreignasset-type--prices--medium",
+    "title": "Missing check that foreign_asset_id is specifically of the ForeignAsset type",
+    "severity": "Medium",
+    "component": "prices",
+    "description": "The `set_foreign_asset` extrinsic does not verify that the provided `foreign_asset_id` is of the `ForeignAsset` type. It is only identified as a generic `CurrencyId`, allowing the privileged `UpdateOrigin` to map any asset type, not just foreign assets.",
+    "impact": "This could lead to incorrect system configurations and unexpected behavior if non-foreign assets are improperly mapped, potentially affecting asset management and pricing logic.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "default-mantissa-precision-can-lead-to-an-incorrect-price--prices--medium",
+    "title": "Default mantissa precision can lead to an incorrect price",
+    "severity": "Medium",
+    "component": "prices",
+    "description": "The `get_asset_mantissa` function is used to determine the decimal precision for a given asset. If it cannot find the decimal information for a specified `asset_id`, it defaults to a precision of 12 decimals instead of returning an error.",
+    "impact": "An incorrect mantissa calculation due to a misconfiguration or missing asset information would lead to erroneous price valuations, affecting all financial calculations involving that asset.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "missing-validation-for-the-lend-token-id--lend-market--medium",
+    "title": "Missing validation for the lend_token_id",
+    "severity": "Medium",
+    "component": "lend-market",
+    "description": "The `force_update_market` function allows a privileged origin to assign a new `lend_token_id` to a market. However, it fails to verify whether the specified `lend_token_id` is already in use as a market, a check that is present elsewhere in the codebase.",
+    "impact": "This oversight could lead to inconsistencies in market configuration, as a token not designed to be a market could be assigned as one, potentially breaking market invariants and behavior.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "the-force-update-market-extrinsic-could-break-existing-markets--lend-market--medium",
+    "title": "The force_update_market extrinsic could break existing markets",
+    "severity": "Medium",
+    "component": "lend-market",
+    "description": "The `force_update_market` function permits a privileged origin to forcibly replace an existing market's parameters without ensuring the coherence of the new data. For example, it could set a `collateral_factor` outside the valid [0,1] range.",
+    "impact": "A misconfigured or malicious update could break market operations, disrupt invariants, and potentially lead to a loss of funds for users interacting with the affected market.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "static-calculation-of-weights-for-the-update-liquidation-fee-collateral-extrinsic--lend-market--medium",
+    "title": "Static calculation of weights for the update_liquidation_fee_collateral extrinsic",
+    "severity": "Medium",
+    "component": "lend-market",
+    "description": "The `update_liquidation_fee_collateral` extrinsic takes a vector of collaterals as a parameter, but the weight calculation for the extrinsic is static. It does not account for the number of items in the `collaterals` vector.",
+    "impact": "The fee charged for the extrinsic is uncorrelated with the computational resources used, which could be exploited. This creates an unfair fee structure and a potential vector for inefficient resource usage.",
+    "kind": "Design"
+  },
+  {
+    "id": "missing-validation-of-liquidate-incentive-reserved-factor-during-market-update--lend-market--medium",
+    "title": "Missing validation of liquidate_incentive_reserved_factor during market update",
+    "severity": "Medium",
+    "component": "lend-market",
+    "description": "When updating a market via the `update_market` function, the `liquidate_incentive_reserved_factor` parameter is not validated to be within the expected (0,1) range. This check is correctly performed when a market is first added, but is missing on update.",
+    "impact": "Setting this factor outside the valid range could lead to incorrect calculations of incentives during liquidations, potentially causing unexpected financial losses or gains and breaking market mechanics.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "incorrect-interest-is-calculated-if-requested-before-market-initialization--lend-market--medium",
+    "title": "Incorrect interest is calculated if requested before market initialization",
+    "severity": "Medium",
+    "component": "lend-market",
+    "description": "When the `get_market_status` function is called for a market that has not yet been used, the `last_accrued_interest_time` variable defaults to zero. This causes the interest accrual period to be inaccurately computed from January 1, 1970.",
+    "impact": "This leads to a significant miscalculation of interest for the market, which could result in incorrect accounting and financial reporting until the market is properly initialized.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "inefficient-active-markets-search--lend-market--informational",
+    "title": "Inefficient active markets search",
+    "severity": "Informational",
+    "component": "lend-market",
+    "description": "The `ensure_active_market` function searches for a market by iterating through all markets with O(n) complexity. This operation could be performed in constant time, O(1), by using the `market` storage map directly.",
+    "impact": "The current implementation causes the execution to incur higher gas costs due to unnecessary iteration, reducing the overall efficiency of the protocol.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "inefficient-market-data-aggregation--lend-market--informational",
+    "title": "Inefficient market data aggregation",
+    "severity": "Informational",
+    "component": "lend-market",
+    "description": "The `get_lf_base_position` function iterates through all active markets to aggregate collateral data. However, the queried market data is not retained, even though it is re-queried later by another function, leading to redundant calculations.",
+    "impact": "This causes the execution to incur higher costs due to unnecessary and repeated storage reads and calculations, making the operation less efficient.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "redundant-storage-queries--lend-market--informational",
+    "title": "Redundant storage queries",
+    "severity": "Informational",
+    "component": "lend-market",
+    "description": "The `pallets/lend-market/src/lib.rs` file exhibits multiple instances of redundant on-chain storage queries. For example, storage is first checked for a key's existence and then a second query is made to fetch the value, where a single query would suffice.",
+    "impact": "Minimizing the number of storage queries would enhance both performance and code clarity, leading to lower gas costs and a more efficient implementation.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "code-duplication--lend-market--informational",
+    "title": "Code duplication",
+    "severity": "Informational",
+    "component": "lend-market",
+    "description": "The `pallets/lend-market/src/lib.rs` file contains multiple instances of duplicated code logic. For example, the code fragments in lines 1144-1152 and 1158-1166 are nearly identical, as are fragments in lines 1312-1325 and 1280-1293.",
+    "impact": "Code duplication undermines maintainability and increases the risk of introducing bugs, as fixes and updates must be applied in multiple places.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "the-get-special-asset-price-function-consistently-returns-none--prices--informational",
+    "title": "The get_special_asset_price function consistently returns None",
+    "severity": "Informational",
+    "component": "prices",
+    "description": "In `pallets/prices/src/lib.rs`, the `get_special_asset_price` function is designed to return a `TimeStampedPrice` value. However, the implementation consistently returns `None`, rendering the function ineffective.",
+    "impact": "This behavior is misleading to developers and callers of the function, and it represents dead code that serves no purpose, potentially indicating a logic error or incomplete implementation.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "inefficient-reduce-reserves-extrinsic-execution-in-case-of-reduce-reserves-parameter-equal-to-zero--lend-market--informational",
+    "title": "Inefficient reduce_reserves extrinsic execution in case of reduce_reserves parameter equal to zero",
+    "severity": "Informational",
+    "component": "lend-market",
+    "description": "The `reduce_reserves` extrinsic takes a `reduce_amount` as a parameter. If this amount is zero, the function proceeds to perform all its operations unnecessarily, which is inefficient and could be misleading.",
+    "impact": "Executing the function with a zero amount wastes computational resources and gas, and could be prevented with a simple check at the beginning of the function.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "use-of-magic-numbers-decreases-maintainability--lend-market--informational",
+    "title": "Use of magic numbers decreases maintainability",
+    "severity": "Informational",
+    "component": "lend-market",
+    "description": "Throughout the codebase, hard-coded number literals are used without context or a descriptive name (e.g., in `farming.rs:28` and `rate_model.rs:173`). This practice, known as using 'magic numbers', goes against best practices.",
+    "impact": "Using magic numbers reduces code readability and maintainability, as developers cannot easily understand their purpose and may introduce inconsistencies when making changes.",
+    "kind": "Documentation"
+  },
+  {
+    "id": "state-change-events-are-emitted-even-if-no-change-has-occurred--lend-market--informational",
+    "title": "State change events are emitted even if no change has occurred",
+    "severity": "Informational",
+    "component": "lend-market",
+    "description": "When updating market parameters, success events like `MarketRewardSpeedUpdated` or `UpdatedMarket` are emitted regardless of whether any state has actually changed. If no optional values are specified in the call, the state remains the same but an event is still emitted.",
+    "impact": "This is inconsistent with the function's logic and can be misleading for off-chain tools and UIs that rely on events to track state changes, leading to unnecessary processing.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "miscellaneous-comments--unspecified--informational",
+    "title": "Miscellaneous comments",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "The report identifies several minor issues: an overflow error is incorrectly labeled as underflow, an `assert` should be a `use`, a `NotSupportTokenType` should be reworded, and an inequality should be `greater than or equal to` instead of just `greater than` based on implementation logic.",
+    "impact": "These minor issues relate to code clarity, correctness, and consistency. Addressing them would improve the overall quality and maintainability of the codebase.",
+    "kind": "Implementation"
+  }
+]

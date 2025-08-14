@@ -1,0 +1,164 @@
+[
+  {
+    "id": "potential-loss-of-funds-due-to-can-deposit-error-during-the-refund-process--pallet-bonded-coins--high",
+    "title": "Potential loss of funds due to can_deposit error during the refund process",
+    "severity": "High",
+    "component": "pallet-bonded-coins",
+    "description": "The refund_account extrinsic allows users to burn bonded tokens to claim collateral. However, a failure in the can_deposit check, for reasons such as the MaxConsumers limit being reached, is not handled correctly. This results in the user's tokens being burned while the collateral is not deposited into their account.",
+    "impact": "This flaw can lead to an irreversible loss of user funds, as their tokens are destroyed but the corresponding collateral is not returned.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "configurations-of-polynomialparameters-can-lead-to-overflow--pallet-bonded-coins--low",
+    "title": "Configurations of PolynomialParameters can lead to overflow",
+    "severity": "Low",
+    "component": "pallet-bonded-coins",
+    "description": "The implementation of the polynomial curve cost calculation lacks validation to restrict parameter values that could cause an arithmetic overflow. The `calculate_costs` function is susceptible to overflow due to squared operations on its parameters.",
+    "impact": "An overflow during minting operations could lead to a locked pool where no further tokens can be minted, effectively causing a denial of service for that specific pool.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "the-maxconsumers-constraint-limits-multi-asset-pool-usability--pallet-bonded-coins--low",
+    "title": "The MaxConsumers constraint limits multi-asset pool usability",
+    "severity": "Low",
+    "component": "pallet-bonded-coins",
+    "description": "The pallet allows creating a pool with up to 50 currencies, but the chain's `MaxConsumers` limit restricts an account to holding only 16 non-sufficient assets. This constraint prevents users from participating in pools with a large number of currencies if they need to hold balances in many of them.",
+    "impact": "The usability and flexibility of multi-asset pools are significantly reduced, as pool designs that require a user to interact with more than 16 currencies become impractical.",
+    "kind": "Design"
+  },
+  {
+    "id": "incomplete-asset-cleanup-in-finish-destroy-extrinsic-may-leave-residual-tokens--pallet-bonded-coins--low",
+    "title": "Incomplete asset cleanup in finish_destroy extrinsic may leave residual tokens",
+    "severity": "Low",
+    "component": "pallet-bonded-coins",
+    "description": "The `finish_destroy` extrinsic, which completes a pool's destruction, does not account for tokens still held by users, particularly if the destruction was initiated forcibly. The function finalizes asset destruction without ensuring all user-held tokens have been burned.",
+    "impact": "Residual tokens may remain in user accounts after a pool is destroyed, leading to an inconsistent state and potential issues with supply accounting.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "centralization-risks--pallet-bonded-coins--low",
+    "title": "Centralization risks",
+    "severity": "Low",
+    "component": "pallet-bonded-coins",
+    "description": "Multiple centralization risks were identified, granting excessive power to privileged roles. The pool manager can trigger pool destruction, freeze assets, and modify the management team. Furthermore, some administrative actions require root access (ForceOrigin), centralizing power in a single entity.",
+    "impact": "Excessive control by a pool manager or root account can undermine the system's trustlessness and could be abused to manipulate markets or misappropriate funds.",
+    "kind": "Design"
+  },
+  {
+    "id": "possibility-of-setting-different-management-teams-for-assets-within-the-same-pool--pallet-bonded-coins--low",
+    "title": "Possibility of setting different management teams for assets within the same pool",
+    "severity": "Low",
+    "component": "pallet-bonded-coins",
+    "description": "The `reset_team` function updates the management team for only a single currency at a time. Since a pool can contain multiple currencies, this can create a scenario where different entities manage different currencies within the same pool.",
+    "impact": "Inconsistent control across assets in a single pool can lead to unexpected behavior and operational disruptions, especially if one currency is frozen while others are not.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "unused-owner-parameter-in-reset-team-function--pallet-bonded-coins--informational",
+    "title": "Unused _owner parameter in reset_team function",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "The `reset_team` function implementation within the traits module includes an `_owner` parameter that is never used. The function logic ignores this parameter and instead retrieves the owner directly from the `AssetsPallet`, which could lead to incorrect assumptions in the code.",
+    "impact": "The unused parameter can cause confusion for developers and potentially lead to mismatches or incorrect assumptions about the function's behavior.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "missing-validations-of-currencies-list-during-pool-creation--pallet-bonded-coins--informational",
+    "title": "Missing validations of currencies list during pool creation",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "The `create_pool` extrinsic lacks validation to prevent multiple currencies with identical metadata (name and symbol) from being created within the same pool. Additionally, it does not enforce a non-empty pool constraint, allowing for the creation of empty, non-functional pools.",
+    "impact": "Allowing duplicate currency metadata can cause user confusion, while the creation of empty pools serves no functional purpose and clutters the state.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "minimal-error-handling-in-try-from-implementation--pallet-bonded-coins--informational",
+    "title": "Minimal error handling in try_from implementation",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "The `try_from` implementation in the square-root curve logic uses a simplistic error type, returning an empty `()` value on failure. This provides no context about the nature of the conversion failure.",
+    "impact": "The lack of detailed error information makes debugging and error handling more challenging for developers and users interacting with the pallet.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "redundant-defensive-assertion-in-refund-account-function--pallet-bonded-coins--informational",
+    "title": "Redundant defensive assertion in refund_account function",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "A defensive assertion in the `refund_account` function checks if `sum_of_issuances` is greater than or equal to the `burnt` amount. This check is redundant because the logic immediately preceding it guarantees this condition is always met.",
+    "impact": "While not harmful, the redundant code adds unnecessary complexity and can be removed to simplify the codebase.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "inconsistent-pool-lock-state--pallet-bonded-coins--informational",
+    "title": "Inconsistent pool lock state",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "The `set_lock` extrinsic allows a pool to be marked as `PoolStatus::Locked` even if minting and burning operations are still enabled. The function does not validate that both `allow_mint` and `allow_burn` are set to false when applying the locked status.",
+    "impact": "This can lead to an inconsistent state where a pool appears to be locked but operations are still permitted, potentially confusing users and dApp developers.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "possible-optimization-in-polynomial-curve--pallet-bonded-coins--informational",
+    "title": "Possible optimization in polynomial curve",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "The `calculate_costs` function in the polynomial curve implementation performs calculations for terms involving coefficients `m` and `n` without first checking if they are zero. If a coefficient is zero, the corresponding calculation is redundant.",
+    "impact": "Unnecessary computations consume computational overhead. Adding pre-checks for zero-value coefficients would bypass these calculations and improve efficiency.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "manager-change-allowed-in-destroying-state-pools--pallet-bonded-coins--informational",
+    "title": "Manager change allowed in destroying state pools",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "The `reset_manager` function does not prevent a manager change for a pool that is in a non-live or destroying state. Allowing a manager change for a pool being decommissioned could lead to inconsistencies.",
+    "impact": "Permitting manager changes on pools being destroyed could lead to unintended control transfers or complicate the decommissioning process.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "contracts-should-implement-a-two-step-ownership-transfer--pallet-bonded-coins--informational",
+    "title": "Contracts should implement a two-step ownership transfer",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "The `reset_manager` extrinsic uses a one-step ownership transfer, which presents a risk of losing ownership if the new owner's address is incorrect. A two-step process, where a new owner is proposed and must then claim ownership, is recommended to prevent this.",
+    "impact": "A one-step transfer risks permanent loss of contract control if an incorrect address is provided, potentially locking the pool's administrative functions.",
+    "kind": "Design"
+  },
+  {
+    "id": "unresolved-todo-and-fixme-comments-in-the-codebase--unspecified--informational",
+    "title": "Unresolved TODO and FIXME comments in the codebase",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "Over 40 `TODO` and `FIXME` comments were identified throughout the codebase. These comments indicate areas with pending tasks, known issues, or required improvements that have not yet been addressed.",
+    "impact": "Leaving unresolved `TODO` and `FIXME` comments can lead to technical debt and may hide potential underlying issues that should be addressed.",
+    "kind": "Documentation"
+  },
+  {
+    "id": "missing-event-emission-for-reset-team--pallet-bonded-coins--informational",
+    "title": "Missing event emission for reset_team",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "The `reset_team` extrinsic, which updates administrative roles like admin and freezer, does not emit an event upon successful execution. This lack of notification makes it difficult for off-chain tools and listeners to track administrative changes.",
+    "impact": "Without an event, off-chain tracking and governance monitoring systems may become inconsistent with the on-chain state of administrative roles.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "redundant-manager-and-team-updates-are-allowed--pallet-bonded-coins--informational",
+    "title": "Redundant manager and team updates are allowed",
+    "severity": "Informational",
+    "component": "pallet-bonded-coins",
+    "description": "The `reset_team` and `reset_manager` extrinsics do not validate whether the new values being set are different from the existing ones. This allows for redundant updates to be executed.",
+    "impact": "Executing redundant updates consumes system resources and transaction fees unnecessarily without changing the system's state.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "dependencies-are-subject-to-publicly-known-vulnerabilities--unspecified--informational",
+    "title": "Dependencies are subject to publicly known vulnerabilities",
+    "severity": "Informational",
+    "component": "unspecified",
+    "description": "The project's dependencies are not up-to-date and contain publicly known vulnerabilities in libraries such as `rustls`, `curve25519-dalek`, and `idna`. Additionally, some dependencies like `parity-util-mem` are deprecated.",
+    "impact": "Using outdated dependencies with known vulnerabilities can expose the project to security risks that have already been discovered and fixed in newer versions.",
+    "kind": "Dependency"
+  }
+]

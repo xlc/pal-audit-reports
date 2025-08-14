@@ -1,0 +1,11 @@
+[
+  {
+    "id": "S1-52",
+    "title": "Failed assumption: new_xcm_location for foreign asset may already exist",
+    "severity": "Low",
+    "component": "/pallets/moonbeam-foreign-assets/src/lib.rs",
+    "description": "The function to create a new foreign asset ensures its XCM location does not already exist. However, a separate governance function to change an asset's XCM location ('change_xcm_location') fails to perform the same check, making it possible to assign a location that is already in use.",
+    "impact": "A malicious or accidental governance action could configure multiple foreign assets to use the same XCM location. This would cause collisions in asset resolution, leading to confusion and undefined behavior.",
+    "kind": "Implementation"
+  }
+]

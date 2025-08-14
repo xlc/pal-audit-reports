@@ -1,0 +1,155 @@
+[
+  {
+    "id": "S3-43",
+    "title": "ExistentialDeposit is configured to 0",
+    "severity": "High",
+    "component": "runtime",
+    "description": "The ExistentialDeposit parameter, which is designed to facilitate the automatic removal of inactive accounts, is set to zero in the Peaq runtime. This configuration disables the cleanup mechanism, causing account data to be permanently stored on-chain even if the account has no balance.",
+    "impact": "This allows for storage spamming attacks where an attacker can cheaply create a vast number of accounts, leading to blockchain bloat, degraded node performance, and increased operational overhead.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "S3-40",
+    "title": "Incorrectly on_finalize weights might lead to denial-of-service attacks",
+    "severity": "High",
+    "component": "pallets/parachains-staking",
+    "description": "The `on_initialize` hook uses a static weight for its calculations, failing to dynamically simulate the actual weight that will be consumed by the `on_finalize` hook later. This leads to an underestimation of the computational resources required for block finalization.",
+    "impact": "The miscalculation of weights increases the risk of producing overweight blocks. Such blocks may be rejected by the network, leading to service disruptions and an inability to finalize transactions.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S3-39",
+    "title": "Collator can drain delegator's rewards by manipulation commission rate",
+    "severity": "High",
+    "component": "pallets/parachains-staking",
+    "description": "A collator can change their commission rate at any time without restriction. A malicious collator can attract delegators by advertising a low commission rate and then, after securing delegations, raise the rate to 100% to divert all staking rewards to themselves.",
+    "impact": "Delegators are exposed to significant financial loss, as their rewards can be redirected entirely without their consent. This undermines trust in the staking system and discourages network participation.",
+    "kind": "Design"
+  },
+  {
+    "id": "S3-36",
+    "title": "Missing trait-in-use checks in _validateTraitOwnership enables infinite minting",
+    "severity": "High",
+    "component": "contracts/SolarSeekers.sol",
+    "description": "The minting process lacks a mechanism to verify whether a specific base trait has already been used to create a derived token. The `_validateTraitOwnership` function confirms ownership but does not track trait usage, permitting the same traits to be reused indefinitely.",
+    "impact": "This allows for the unlimited minting of derived tokens from a finite set of base traits, which devalues the entire NFT collection. The resulting inflation erodes user trust and causes financial losses for holders.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "S2-37",
+    "title": "Single trait approval for NFT minting limits usability and efficiency",
+    "severity": "Medium",
+    "component": "contracts/SolarSeekerTraits.sol",
+    "description": "The current approval mechanism only permits a user to have one approved trait at a time. Since minting a final NFT requires at least four traits, users must engage in a repetitive and cumbersome cycle of requesting approval and minting for each individual trait.",
+    "impact": "This design leads to a poor user experience, increases the likelihood of errors from overwritten approvals, and results in higher gas costs due to the necessity of multiple transactions.",
+    "kind": "Design"
+  },
+  {
+    "id": "S2-35",
+    "title": "Trait token may be reused to satisfy multiple trait slots",
+    "severity": "Medium",
+    "component": "contracts/SolarSeekers.sol",
+    "description": "The system fails to enforce the uniqueness of traits used in the minting process, allowing a user to reuse the same trait token to fill multiple slots. This allows a derived NFT to be minted with only a single valid trait instead of the required four distinct ones.",
+    "impact": "This issue undermines the non-fungibility of the derived tokens and misleads users about their uniqueness. It breaks the intended supply bounding of derived minting, potentially devaluing the assets.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S2-18",
+    "title": "Permissive `GasLimitStorageGrowthRatio` leads to excessive storage growth",
+    "severity": "Medium",
+    "component": "runtime",
+    "description": "The `GasLimitStorageGrowthRatio` is configured to a 1-to-1 ratio between gas consumption and storage growth. This setting makes on-chain storage disproportionately cheap compared to the computational cost.",
+    "impact": "This configuration creates a risk of cheap storage bloating, where an attacker could flood the blockchain with storage-heavy transactions at a low cost, severely affecting network scalability and maintainability.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "S2-16",
+    "title": "Incorrect benchmarks for `pallet_evm`",
+    "severity": "Medium",
+    "component": "runtime",
+    "description": "The `pallet_evm` uses default Substrate benchmarks instead of benchmarks tailored to the specific Peaq runtime configuration. Default benchmarks do not accurately reflect the resource usage of EVM-related extrinsics on Peaq.",
+    "impact": "Relying on default benchmarks leads to inaccurate weight calculations for transactions. This can result in underweight extrinsics, which pose a security risk by allowing transactions to consume more resources than allocated, potentially destabilizing the network.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "S1-42",
+    "title": "Unsafe arithmetic can halt collator payouts",
+    "severity": "Low",
+    "component": "pallets/parachains-staking",
+    "description": "The `get_collator_reward_per_session` function uses an arithmetic operation that is vulnerable to an overflow. If the total delegated stake exceeds the `u128::MAX` limit, the sum resets to zero, causing the reward calculation to incorrectly yield zero rewards for the collator.",
+    "impact": "In the unlikely event of an overflow, collators would not receive their due rewards, which could undermine their incentive to secure the network. This poses a low risk to the network's economic stability.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S1-41",
+    "title": "Lack of weight tracking in note_author() hook",
+    "severity": "Low",
+    "component": "pallets/parachain_staking",
+    "description": "The `note_author()` hook, which tracks collator selection, performs state changes without tracking the associated computational weight. The resources consumed by its read and write operations are not reported to the runtime.",
+    "impact": "While the current weight is minimal, this is poor practice. If the function's complexity grows, the untracked weight could contribute to the creation of overweight blocks, potentially causing chain stalls.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S1-32",
+    "title": "Missing sanity checks for traitContract address",
+    "severity": "Low",
+    "component": "contracts/SolarSeekers.sol",
+    "description": "The `traitContract` address is initialized during deployment without validation to ensure it is not a null or incorrect address. If a misconfiguration occurs, there is no in-contract mechanism to update the address post-deployment.",
+    "impact": "An incorrect `traitContract` address would render the primary `mintWithTraits` function unusable, breaking core contract functionality. The only remedy would be a costly and disruptive redeployment of the contract.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S1-31",
+    "title": "Single-step ownership transferal",
+    "severity": "Low",
+    "component": "contracts",
+    "description": "The contracts utilize a single-step ownership transfer mechanism, where ownership is immediately transferred to a new address upon the owner's request. This process lacks a confirmation step from the recipient to verify their ability and intent to assume ownership.",
+    "impact": "Transferring ownership to a mistyped address or a contract that cannot manage ownership roles would result in a permanent loss of control. This could necessitate a full redeployment of the contract.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "S1-15",
+    "title": "Incorrect topic selector for `RemoveAttribute` event submission",
+    "severity": "Low",
+    "component": "precompiles",
+    "description": "A typographical error in the `RemoveAttribute` function signature (`RemoveAttribte`) causes an incorrect event topic to be generated when the function is executed. This inconsistency affects systems that listen for this specific event.",
+    "impact": "Off-chain monitoring tools and other systems relying on event detection will fail to capture these events. This can lead to incomplete data and malfunctioning event-driven workflows.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S0-38",
+    "title": "Gas optimizations and logic efficiency",
+    "severity": "Informational",
+    "component": "contracts",
+    "description": "The audit identified several opportunities for gas optimization. Recommendations include using custom errors over require strings, preferring prefix (++i) over postfix (i++) increments in loops, caching storage items in memory for complex operations, and setting function visibility to `external` where appropriate.",
+    "impact": "These optimizations do not address a direct vulnerability but would lead to reduced transaction fees for users and lower execution overhead for the network.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S0-33",
+    "title": "Missing events in SolarSeekers and SolarSeekersTraits contracts",
+    "severity": "Informational",
+    "component": "contracts/SolarSeekers.sol",
+    "description": "Key functions that alter the contract's state, such as `updateTraits()` and `allowMint()`, do not emit events upon execution. The absence of event logging for these critical actions makes it difficult for off-chain applications to monitor and react to state changes.",
+    "impact": "The lack of events limits the capabilities of monitoring and tracing tools, potentially leading to an inaccurate or incomplete understanding of the system's state by external services.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "S0-19",
+    "title": "Missing size checkings could lead to unnecessary gas cost",
+    "severity": "Informational",
+    "component": "precompiles/peaq-rbac",
+    "description": "The `add_permission` precompile does not validate the size of input parameters before dispatching the call. If an input exceeds the maximum allowed size, the transaction is reverted, but only after consuming gas that could have been saved with an initial size check.",
+    "impact": "While not a security risk, this issue can lead to users paying for transactions that are destined to fail, resulting in unnecessary gas costs and a suboptimal user experience.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "S0-17",
+    "title": "Incorrect fields names in reverted function backtraces",
+    "severity": "Informational",
+    "component": "precompiles",
+    "description": "When precompile calls fail, the logged backtraces use generic or misleading parameter names (e.g., `amount` instead of `value`). This makes troubleshooting and long-term maintenance of the codebase more cumbersome.",
+    "impact": "This issue does not pose a security risk but can cause confusion for developers and users trying to diagnose why a specific call was reverted, thereby increasing debugging time.",
+    "kind": "Documentation"
+  }
+]

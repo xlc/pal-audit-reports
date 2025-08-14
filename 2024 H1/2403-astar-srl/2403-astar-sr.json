@@ -1,0 +1,20 @@
+[
+  {
+    "id": "missing-benchmarking-for-the-lockdrop-precompile-dispatch--precompiles-dispatch-lockdrop--informational",
+    "title": "Missing benchmarking for the lockdrop precompile dispatch",
+    "severity": "Informational",
+    "component": "precompiles/dispatch-lockdrop",
+    "description": "The precompile dispatch-lockdrop has an un-benchmarked weight_to_gas estimation. A static ref_time is used for weight calculation, which can lead to an underestimation of the weights and does not reflect the actual runtime environment.",
+    "impact": "An attacker may be able to spam the chain and conduct denial of service attacks cheaply in comparison to the actual transaction cost.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "unbounded-call-length-limit-in-lockdrop-dispatch-call--precompiles-dispatch-lockdrop--low",
+    "title": "Unbounded call length limit in lockdrop dispatch call",
+    "severity": "Low",
+    "component": "precompiles/dispatch-lockdrop",
+    "description": "The precompile dispatch call uses the `UnboundedBytes` type without any length validation for the call object parameter. An unbounded call with a large `call_length` can be moved into a vector before decoding, creating a potential for heap overflow.",
+    "impact": "An attacker can create multiple nested calls to bloat the call_length, which can cause a heap overflow and lead to a denial of service.",
+    "kind": "Input Validation"
+  }
+]

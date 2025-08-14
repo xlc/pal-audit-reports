@@ -1,0 +1,157 @@
+
+[
+  {
+    "id": "HO-2503-01",
+    "title": "Potential denial of service by storing non-whitelisted pairs from Bifrost oracle",
+    "severity": "High",
+    "component": "pallets/ema-oracle",
+    "description": "Data from the Bifrost source is accepted and stored in the Accumulator even if the pair is not whitelisted. If Bifrost continuously pushes updates for non-whitelisted pairs, they consume the MaxUniqueEntries capacity, preventing valid (whitelisted) entries from being recorded, effectively cluttering the pallet with irrelevant data.",
+    "impact": "This can lead to a denial of service scenario where legitimate updates are locked out because the pallet's capacity is consumed by non-whitelisted, irrelevant data.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "HO-2503-02",
+    "title": "Liquidity providers can be blocked from exit",
+    "severity": "High",
+    "component": "pallets/stableswap",
+    "description": "The `remove_liquidity_one_asset` function validates that either a provider performs a full exit or that the remaining liquidity is above `MinPoolLiquidity`. This logic creates scenarios where a liquidity provider who wishes to exit fully cannot do so if another provider's partial withdrawal leaves the pool liquidity just above the minimum threshold.",
+    "impact": "A liquidity provider can be prevented from withdrawing their entire stake, effectively locking their funds in the pool until another user adds more liquidity.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-03",
+    "title": "Liquidity of any asset can be inflated or deflated by the registry owner",
+    "severity": "High",
+    "component": "pallets/stableswap",
+    "description": "The `do_add_liquidity` function does not use the `normalize_value` function when adding new liquidity to a reserve. If the registry owner updates the decimals of a registered asset, all existing liquidity pools with that asset become corrupted, as the stored values are not adjusted for the new precision.",
+    "impact": "A malicious or mistaken registry owner can arbitrarily inflate or deflate the value of assets in liquidity pools, leading to significant financial loss for liquidity providers.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-04",
+    "title": "Unexpected behavior results from inability to remove oracle data set during genesis",
+    "severity": "Medium",
+    "component": "pallets/ema-oracle",
+    "description": "Genesis oracle entries are stored in the pallet's storage without being added to the `WhitelistedAssets` variable. The `remove_oracle` extrinsic requires an asset to be whitelisted for removal, making it impossible to remove genesis-defined oracles if support for them is later discontinued.",
+    "impact": "The pallet accumulates unnecessary and outdated oracle data, which can lead to unintended oracle usage within the stableswap pallet.",
+    "kind": "Configuration"
+  },
+  {
+    "id": "HO-2503-05",
+    "title": "Missing slippage protection in add_liquidity extrinsic",
+    "severity": "Medium",
+    "component": "pallets/stableswap",
+    "description": "The `add_liquidity` function does not implement slippage protection, unlike other liquidity-related functions in the pallet. This is also inconsistent with Curve Finance's implementation, which includes a `min_mint_amount` parameter to protect users.",
+    "impact": "Users adding liquidity may receive significantly fewer shares than expected due to front-running attacks or market volatility, potentially resulting in financial losses.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-06",
+    "title": "Missing protection for rapid amplification changes",
+    "severity": "Medium",
+    "component": "pallets/stableswap",
+    "description": "The `update_amplification` function lacks a minimum timeframe requirement between consecutive changes. This differs from Curve Finance, which enforces a one-day waiting period (`MIN_RAMP_TIME`) for such updates.",
+    "impact": "A malicious actor with privileged access could manipulate the amplification parameter in rapid succession, causing pool instability and creating arbitrage opportunities to extract value.",
+    "kind": "Access Control"
+  },
+  {
+    "id": "HO-2503-07",
+    "title": "Pool destructure procedure is not complete",
+    "severity": "Medium",
+    "component": "pallets/stableswap",
+    "description": "When a pool is destroyed via the `remove_liquidity` function, the corresponding peg data of type `PegInfo` is not removed from storage. This leaves stale entries in the `PoolPegs` storage map even though the pool is no longer active.",
+    "impact": "The system retains stale and orphaned data in its storage, which could lead to inconsistencies or unexpected behavior if other parts of the system assume that peg info corresponds to an active pool.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-08",
+    "title": "Silent duplication error handling during liquidity removal",
+    "severity": "Informational",
+    "component": "pallets/stableswap",
+    "description": "The `remove_liquidity` function does not explicitly validate that asset IDs in `min_amounts_out` are unique. While it checks if the length matches the pool's asset count, a duplicate asset would cause a later failure with a generic `IncorrectAssets` error, obscuring the root cause.",
+    "impact": "Error handling is not precise, making debugging and off-chain error interpretation more difficult for developers and users.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-09",
+    "title": "Insufficient pool fee validation",
+    "severity": "Informational",
+    "component": "pallets/stableswap",
+    "description": "The `update_pool_fee` function lacks important validations. It does not validate the new fee against a maximum allowed value, meaning a fee could be set to 100%, and it does not check if the new fee is different from the current one, allowing for redundant updates.",
+    "impact": "Without a fee ceiling, a malicious actor could set an extreme fee that breaks normal pool operations. Allowing redundant updates is inefficient.",
+    "kind": "Input Validation"
+  },
+  {
+    "id": "HO-2503-10",
+    "title": "Missing staleness monitoring for oracle data",
+    "severity": "Informational",
+    "component": "pallets/stableswap",
+    "description": "When fetching oracle data via `get_raw_entry`, the code does not verify whether the oracle feed is updating regularly. The pallet does not log any warnings if the oracle feed stops providing fresh data for an extended period.",
+    "impact": "The pallet may unknowingly rely on outdated price data, which could lead to incorrect pricing and financial decisions, especially if an oracle feed like Bifrost's ceases to operate.",
+    "kind": "Operational"
+  },
+  {
+    "id": "HO-2503-11",
+    "title": "Potential for optimization in shares calculation",
+    "severity": "Informational",
+    "component": "math/stableswap",
+    "description": "In the `calculate_shares` function, the call to `calculate_d` can be optimized for the specific case where `share_issuance` is zero. In this scenario, a result can be returned immediately without performing the more computationally expensive calculations that follow.",
+    "impact": "The code performs unnecessary computations in a specific, yet common, edge case, leading to minor gas inefficiencies.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-12",
+    "title": "Possible optimization in create_pool function",
+    "severity": "Informational",
+    "component": "pallets/stableswap",
+    "description": "The `create_pool` function validates the length of the input `assets` vector against a maximum threshold, but it does so late in the function. An immediate validation at the start of the function would be more efficient.",
+    "impact": "The function may perform unnecessary operations before failing, leading to wasted execution time and gas in cases where the input asset vector is invalid.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-13",
+    "title": "Inconsistency in update_amplification specification",
+    "severity": "Informational",
+    "component": "pallets/stableswap",
+    "description": "The documentation comments for the `update_amplification` function do not match the actual implementation parameters. The comments reference different parameter names and structures than what the code uses.",
+    "impact": "This inconsistency can cause confusion for developers during code maintenance or when integrating with the pallet, potentially leading to incorrect usage.",
+    "kind": "Documentation"
+  },
+  {
+    "id": "HO-2503-14",
+    "title": "Misleading error messages",
+    "severity": "Informational",
+    "component": "pallets/stableswap",
+    "description": "The `ArithmeticError::Overflow` error is used incorrectly in several places to report general validation issues, not just arithmetic overflows. Additionally, the `IncorrectAssets` error is returned for duplicate assets, when a more specific `DuplicatedAssets` error would be clearer.",
+    "impact": "Imprecise error messages make it harder for developers and users to diagnose the root cause of a problem, slowing down debugging and incident response.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-15",
+    "title": "Missed invariant verification",
+    "severity": "Informational",
+    "component": "pallets/stableswap",
+    "description": "The `ensure_remove_liquidity_invariant` is verified during `remove_liquidity` and `remove_liquidity_one_asset` but is not verified in the `withdraw_asset_amount` function, which is also a form of liquidity removal.",
+    "impact": "The lack of this invariant check in one of the liquidity removal paths creates an inconsistency that could potentially hide bugs or regressions in that specific code path.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-16",
+    "title": "Redundant balance validations",
+    "severity": "Informational",
+    "component": "pallets/stableswap",
+    "description": "The code includes several redundant assertions for user balances during liquidity withdrawals and deposits. For example, it checks if a user has enough shares to withdraw, but the underlying `T::Currency::withdraw` call would fail anyway if the balance is insufficient.",
+    "impact": "These redundant assertions reduce code readability and add marginal, unnecessary overhead to transaction processing.",
+    "kind": "Implementation"
+  },
+  {
+    "id": "HO-2503-17",
+    "title": "Unresolved TODO comments in the codebase",
+    "severity": "Informational",
+    "component": "pallets/stableswap",
+    "description": "Two `TODO` comments were identified in the `pallets/stableswap/src/lib.rs` file. In general, `TODO` and `FIXME` comments tend to accumulate without resolution and can become outdated.",
+    "impact": "Leaving `TODO` comments in the code can reduce long-term maintainability and readability, as they represent unresolved issues or technical debt.",
+    "kind": "Documentation"
+  }
+]
+
